@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import { Head } from '@inertiajs/vue3';
 import ShopLayout from '@/Layouts/Shop/ShopLayout.vue';
 import ProductCard from '@/Components/Shop/ProductCard.vue';
 
@@ -15,6 +16,7 @@ onMounted(() => {
 </script>
 
 <template>
+  <Head title="Home" />
   <ShopLayout>
     <!-- Hero -->
     <section class="relative w-full h-[80vh] flex items-center justify-center overflow-hidden">
