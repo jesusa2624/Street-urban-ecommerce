@@ -1,14 +1,16 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Shop\ProductController; // <-- 1. Agregamos esta línea arriba
+use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// 2. Reemplazamos la ruta raíz vieja por la de tu tienda online
+Route::get('/', [ProductController::class, 'index'])->name('shop.home');
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
