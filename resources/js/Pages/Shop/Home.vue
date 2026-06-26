@@ -61,40 +61,66 @@ onMounted(() => {
     </section>
 
     <!-- Categories Preview -->
-    <section class="py-16 px-4 md:px-8 lg:px-16 max-w-[1600px] mx-auto border-t border-white/10">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="group cursor-pointer">
-          <div class="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg overflow-hidden mb-2 hover:shadow-lg transition-shadow">
-            <div class="w-full h-full flex items-center justify-center">
-              <span class="text-2xl font-black opacity-40 group-hover:opacity-60 transition-opacity">👕</span>
-            </div>
+    <section class="py-24 px-4 md:px-8 lg:px-16 max-w-[1600px] mx-auto border-t border-white/10">
+      <h2 class="text-2xl md:text-3xl font-black uppercase tracking-tighter mb-12 italic">
+        Explora por <span class="text-white/50">Categoría</span>
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Ropa -->
+        <a href="#" class="group relative h-80 rounded-2xl overflow-hidden">
+          <img
+            src="https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg?auto=compress&cs=tinysrgb&w=600"
+            alt="Ropa"
+            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent group-hover:from-black/90 transition-all duration-300"></div>
+          <div class="absolute bottom-0 left-0 right-0 p-6">
+            <h3 class="text-2xl font-black uppercase tracking-tight text-white">Ropa</h3>
+            <p class="text-sm text-gray-300 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Ver colección</p>
           </div>
-          <p class="text-xs uppercase tracking-widest font-semibold text-gray-400">Ropa</p>
-        </div>
-        <div class="group cursor-pointer">
-          <div class="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg overflow-hidden mb-2 hover:shadow-lg transition-shadow">
-            <div class="w-full h-full flex items-center justify-center">
-              <span class="text-2xl font-black opacity-40 group-hover:opacity-60 transition-opacity">👟</span>
-            </div>
+        </a>
+
+        <!-- Calzado -->
+        <a href="#" class="group relative h-80 rounded-2xl overflow-hidden">
+          <img
+            src="https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg?auto=compress&cs=tinysrgb&w=600&q=80&crop=entropy&cs=tinysrgb"
+            alt="Calzado"
+            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent group-hover:from-black/90 transition-all duration-300"></div>
+          <div class="absolute bottom-0 left-0 right-0 p-6">
+            <h3 class="text-2xl font-black uppercase tracking-tight text-white">Calzado</h3>
+            <p class="text-sm text-gray-300 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Ver colección</p>
           </div>
-          <p class="text-xs uppercase tracking-widest font-semibold text-gray-400">Calzado</p>
-        </div>
-        <div class="group cursor-pointer">
-          <div class="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg overflow-hidden mb-2 hover:shadow-lg transition-shadow">
-            <div class="w-full h-full flex items-center justify-center">
-              <span class="text-2xl font-black opacity-40 group-hover:opacity-60 transition-opacity">🎒</span>
-            </div>
+        </a>
+
+        <!-- Accesorios -->
+        <a href="#" class="group relative h-80 rounded-2xl overflow-hidden">
+          <img
+            src="https://images.pexels.com/photos/1884581/pexels-photo-1884581.jpeg?auto=compress&cs=tinysrgb&w=600"
+            alt="Accesorios"
+            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent group-hover:from-black/90 transition-all duration-300"></div>
+          <div class="absolute bottom-0 left-0 right-0 p-6">
+            <h3 class="text-2xl font-black uppercase tracking-tight text-white">Accesorios</h3>
+            <p class="text-sm text-gray-300 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Ver colección</p>
           </div>
-          <p class="text-xs uppercase tracking-widest font-semibold text-gray-400">Accesorios</p>
-        </div>
-        <div class="group cursor-pointer">
-          <div class="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg overflow-hidden mb-2 hover:shadow-lg transition-shadow">
-            <div class="w-full h-full flex items-center justify-center">
-              <span class="text-2xl font-black opacity-40 group-hover:opacity-60 transition-opacity">🧢</span>
-            </div>
+        </a>
+
+        <!-- Sombrería -->
+        <a href="#" class="group relative h-80 rounded-2xl overflow-hidden">
+          <img
+            src="https://images.pexels.com/photos/3973661/pexels-photo-3973661.jpeg?auto=compress&cs=tinysrgb&w=600"
+            alt="Sombrería"
+            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent group-hover:from-black/90 transition-all duration-300"></div>
+          <div class="absolute bottom-0 left-0 right-0 p-6">
+            <h3 class="text-2xl font-black uppercase tracking-tight text-white">Sombrería</h3>
+            <p class="text-sm text-gray-300 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Ver colección</p>
           </div>
-          <p class="text-xs uppercase tracking-widest font-semibold text-gray-400">Sombrería</p>
-        </div>
+        </a>
       </div>
     </section>
 
