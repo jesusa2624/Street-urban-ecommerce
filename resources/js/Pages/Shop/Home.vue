@@ -60,17 +60,55 @@ onMounted(() => {
       </div>
     </section>
 
+    <!-- Categories Preview -->
+    <section class="py-16 px-4 md:px-8 lg:px-16 max-w-[1600px] mx-auto border-t border-white/10">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="group cursor-pointer">
+          <div class="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg overflow-hidden mb-2 hover:shadow-lg transition-shadow">
+            <div class="w-full h-full flex items-center justify-center">
+              <span class="text-2xl font-black opacity-40 group-hover:opacity-60 transition-opacity">👕</span>
+            </div>
+          </div>
+          <p class="text-xs uppercase tracking-widest font-semibold text-gray-400">Ropa</p>
+        </div>
+        <div class="group cursor-pointer">
+          <div class="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg overflow-hidden mb-2 hover:shadow-lg transition-shadow">
+            <div class="w-full h-full flex items-center justify-center">
+              <span class="text-2xl font-black opacity-40 group-hover:opacity-60 transition-opacity">👟</span>
+            </div>
+          </div>
+          <p class="text-xs uppercase tracking-widest font-semibold text-gray-400">Calzado</p>
+        </div>
+        <div class="group cursor-pointer">
+          <div class="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg overflow-hidden mb-2 hover:shadow-lg transition-shadow">
+            <div class="w-full h-full flex items-center justify-center">
+              <span class="text-2xl font-black opacity-40 group-hover:opacity-60 transition-opacity">🎒</span>
+            </div>
+          </div>
+          <p class="text-xs uppercase tracking-widest font-semibold text-gray-400">Accesorios</p>
+        </div>
+        <div class="group cursor-pointer">
+          <div class="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg overflow-hidden mb-2 hover:shadow-lg transition-shadow">
+            <div class="w-full h-full flex items-center justify-center">
+              <span class="text-2xl font-black opacity-40 group-hover:opacity-60 transition-opacity">🧢</span>
+            </div>
+          </div>
+          <p class="text-xs uppercase tracking-widest font-semibold text-gray-400">Sombrería</p>
+        </div>
+      </div>
+    </section>
+
     <!-- Product Grid -->
     <section id="productos" class="py-24 px-4 md:px-8 lg:px-16 max-w-[1600px] mx-auto">
       <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-4">
         <div>
-          <h2 class="text-3xl md:text-4xl font-bold uppercase tracking-tighter italic">
-            Nuestros <span class="text-white/40">Must-Haves</span>
+          <h2 class="text-3xl md:text-5xl font-black uppercase tracking-tighter italic">
+            Colección <span class="text-white/50">Featured</span>
           </h2>
-          <div class="h-1 w-20 bg-white mt-4"></div>
+          <div class="h-1.5 w-32 bg-gradient-to-r from-white to-white/20 mt-6"></div>
         </div>
-        <p class="text-gray-400 text-sm uppercase tracking-widest">
-          {{ products.length }} Productos Disponibles
+        <p class="text-gray-400 text-xs uppercase tracking-widest font-mono border border-white/10 px-4 py-2 rounded">
+          {{ products.length }} Items en Stock
         </p>
       </div>
 
@@ -84,6 +122,26 @@ onMounted(() => {
 
       <div v-else class="py-20 text-center">
         <p class="text-gray-500 text-xl italic">No hay productos disponibles en este momento.</p>
+      </div>
+    </section>
+
+    <!-- Footer CTA -->
+    <section class="py-20 px-4 md:px-8 border-t border-white/10">
+      <div class="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+        <div>
+          <h3 class="text-2xl md:text-3xl font-black uppercase tracking-tight mb-2">
+            Síguenos para nuevos <span class="text-white/50">drops</span>
+          </h3>
+          <p class="text-gray-400 text-sm">Noticias de nuevas colecciones antes que nadie</p>
+        </div>
+        <div class="flex gap-4">
+          <a href="#" class="p-3 border border-white/20 hover:bg-white/10 rounded-lg transition-all">
+            <span class="text-white text-sm font-semibold">Instagram</span>
+          </a>
+          <a href="#" class="p-3 border border-white/20 hover:bg-white/10 rounded-lg transition-all">
+            <span class="text-white text-sm font-semibold">Twitter</span>
+          </a>
+        </div>
       </div>
     </section>
   </ShopLayout>

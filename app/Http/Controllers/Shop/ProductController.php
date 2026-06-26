@@ -44,7 +44,7 @@ class ProductController extends Controller
                 'name' => 'Pantalón Cargo Street',
                 'description' => 'Bolsillos múltiples y ajuste relajado.',
                 'price' => 60,
-                'image' => 'https://images.unsplash.com/photo-1593032465170-1e3f8c6b9f4d?q=80&w=800&auto=format&fit=crop'
+                'image' => 'https://images.pexels.com/photos/1055691/pexels-photo-1055691.jpeg?auto=compress&cs=tinysrgb&w=800'
             ],
             [
                 'id' => 6,
@@ -72,14 +72,14 @@ class ProductController extends Controller
                 'name' => 'Joggers Urban Fit',
                 'description' => 'Comodidad total para el día a día.',
                 'price' => 50,
-                'image' => 'https://images.unsplash.com/photo-1580487232645-567963703447?q=80&w=800&auto=format&fit=crop'
+                'image' => 'https://images.pexels.com/photos/1055691/pexels-photo-1055691.jpeg?auto=compress&cs=tinysrgb&w=800'
             ],
             [
                 'id' => 10,
                 'name' => 'Accesorio Cadena Plata',
                 'description' => 'Acero inoxidable 316L.',
                 'price' => 35,
-                'image' => 'https://images.unsplash.com/photo-1590548784585-6455f79c0f7f?q=80&w=800&auto=format&fit=crop'
+                'image' => 'https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg?auto=compress&cs=tinysrgb&w=800'
             ],
             [
                 'id' => 11,
@@ -93,7 +93,7 @@ class ProductController extends Controller
                 'name' => 'Beanie Wool Black',
                 'description' => 'Lana tejida, ajuste perfecto.',
                 'price' => 20,
-                'image' => 'https://images.unsplash.com/photo-1576871337632-b9aef467560d?q=80&w=800&auto=format&fit=crop'
+                'image' => 'https://images.pexels.com/photos/3973661/pexels-photo-3973661.jpeg?auto=compress&cs=tinysrgb&w=800'
             ],
         ];
 
