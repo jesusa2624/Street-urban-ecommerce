@@ -29,7 +29,11 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
     <!-- Desktop Menu -->
     <div class="hidden lg:flex space-x-12 text-xs font-semibold tracking-widest uppercase text-gray-300">
       <a href="#" class="hover:text-white transition-colors relative group">
-        Home
+        Inicio
+        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
+      </a>
+      <a href="#" class="hover:text-white transition-colors relative group">
+        Tienda
         <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
       </a>
       <a href="#" class="hover:text-white transition-colors relative group">
@@ -38,6 +42,14 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
       </a>
       <a href="#" class="hover:text-white transition-colors relative group">
         Mujeres
+        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
+      </a>
+      <a href="#" class="hover:text-white transition-colors relative group">
+        Ofertas
+        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
+      </a>
+      <a href="#" class="hover:text-white transition-colors relative group">
+        Nosotros
         <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
       </a>
       <a href="#" class="hover:text-white transition-colors relative group">
@@ -79,9 +91,12 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
   <transition name="slide">
     <div v-if="mobileMenuOpen" class="fixed top-16 left-0 w-full bg-[#111111]/98 backdrop-blur-md z-40 border-b border-white/10 lg:hidden">
       <div class="px-6 py-8 space-y-6">
-        <a href="#" class="block text-sm font-semibold tracking-widest uppercase text-gray-300 hover:text-white transition-colors">Home</a>
+        <a href="#" class="block text-sm font-semibold tracking-widest uppercase text-gray-300 hover:text-white transition-colors">Inicio</a>
+        <a href="#" class="block text-sm font-semibold tracking-widest uppercase text-gray-300 hover:text-white transition-colors">Tienda</a>
         <a href="#" class="block text-sm font-semibold tracking-widest uppercase text-gray-300 hover:text-white transition-colors">Hombres</a>
         <a href="#" class="block text-sm font-semibold tracking-widest uppercase text-gray-300 hover:text-white transition-colors">Mujeres</a>
+        <a href="#" class="block text-sm font-semibold tracking-widest uppercase text-gray-300 hover:text-white transition-colors">Ofertas</a>
+        <a href="#" class="block text-sm font-semibold tracking-widest uppercase text-gray-300 hover:text-white transition-colors">Nosotros</a>
         <a href="#" class="block text-sm font-semibold tracking-widest uppercase text-gray-300 hover:text-white transition-colors">Contacto</a>
       </div>
     </div>

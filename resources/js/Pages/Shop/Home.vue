@@ -61,7 +61,10 @@ onMounted(() => {
     </section>
 
     <!-- Categories Preview -->
-    <section class="py-24 px-4 md:px-8 lg:px-16 max-w-[1600px] mx-auto border-t border-white/10">
+    <section class="py-32 px-4 md:px-8 lg:px-16 max-w-[1600px] mx-auto">
+      <div class="space-y-2 mb-12">
+        <div class="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent"></div>
+      </div>
       <h2 class="text-2xl md:text-3xl font-black uppercase tracking-tighter mb-12 italic">
         Explora por <span class="text-white/50">Categoría</span>
       </h2>
@@ -69,7 +72,7 @@ onMounted(() => {
         <!-- Ropa -->
         <a href="#" class="group relative h-80 rounded-2xl overflow-hidden">
           <img
-            src="https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg?auto=compress&cs=tinysrgb&w=600"
+            src="/image/shop/ropa.jpeg"
             alt="Ropa"
             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
@@ -83,7 +86,7 @@ onMounted(() => {
         <!-- Calzado -->
         <a href="#" class="group relative h-80 rounded-2xl overflow-hidden">
           <img
-            src="https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg?auto=compress&cs=tinysrgb&w=600&q=80&crop=entropy&cs=tinysrgb"
+            src="/image/shop/calzados.jpeg"
             alt="Calzado"
             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
@@ -97,7 +100,7 @@ onMounted(() => {
         <!-- Accesorios -->
         <a href="#" class="group relative h-80 rounded-2xl overflow-hidden">
           <img
-            src="https://images.pexels.com/photos/1884581/pexels-photo-1884581.jpeg?auto=compress&cs=tinysrgb&w=600"
+            src="/image/shop/accesorio.jpeg"
             alt="Accesorios"
             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
@@ -111,7 +114,7 @@ onMounted(() => {
         <!-- Sombrería -->
         <a href="#" class="group relative h-80 rounded-2xl overflow-hidden">
           <img
-            src="https://images.pexels.com/photos/3973661/pexels-photo-3973661.jpeg?auto=compress&cs=tinysrgb&w=600"
+            src="/image/shop/gorro.jpeg"
             alt="Sombrería"
             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
@@ -151,22 +154,32 @@ onMounted(() => {
       </div>
     </section>
 
-    <!-- Footer CTA -->
-    <section class="py-20 px-4 md:px-8 border-t border-white/10">
-      <div class="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-        <div>
-          <h3 class="text-2xl md:text-3xl font-black uppercase tracking-tight mb-2">
-            Síguenos para nuevos <span class="text-white/50">drops</span>
-          </h3>
-          <p class="text-gray-400 text-sm">Noticias de nuevas colecciones antes que nadie</p>
-        </div>
-        <div class="flex gap-4">
-          <a href="#" class="p-3 border border-white/20 hover:bg-white/10 rounded-lg transition-all">
-            <span class="text-white text-sm font-semibold">Instagram</span>
-          </a>
-          <a href="#" class="p-3 border border-white/20 hover:bg-white/10 rounded-lg transition-all">
-            <span class="text-white text-sm font-semibold">Twitter</span>
-          </a>
+    <!-- Footer CTA - Newsletter -->
+    <section class="py-24 px-4 md:px-8 border-t border-gray-800 bg-[#0a0a0a]">
+      <div class="max-w-2xl mx-auto text-center">
+        <h2 class="text-3xl md:text-4xl font-black uppercase tracking-tight mb-4">
+          Recibe nuestros <span class="text-gray-500">Drops</span> Primero
+        </h2>
+        <p class="text-gray-400 mb-8">Suscríbete y obtén acceso exclusivo a nuevos lanzamientos y ofertas especiales</p>
+
+        <form class="flex gap-3 mb-6">
+          <input
+            type="email"
+            placeholder="tu@email.com"
+            class="flex-1 px-4 py-3 bg-white text-black rounded-lg focus:outline-none"
+          />
+          <button
+            type="submit"
+            class="px-8 py-3 bg-white text-black font-bold uppercase text-sm rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Suscribir
+          </button>
+        </form>
+
+        <div class="flex justify-center gap-6 pt-6 border-t border-gray-800">
+          <a href="#" class="text-gray-400 hover:text-white transition-colors text-sm font-medium">Instagram</a>
+          <a href="#" class="text-gray-400 hover:text-white transition-colors text-sm font-medium">Twitter</a>
+          <a href="#" class="text-gray-400 hover:text-white transition-colors text-sm font-medium">TikTok</a>
         </div>
       </div>
     </section>
