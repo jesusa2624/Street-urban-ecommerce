@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
+import { Link } from '@inertiajs/vue3';
 
 const scrolled = ref(false);
 const mobileMenuOpen = ref(false);
@@ -28,22 +29,14 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
 
     <!-- Desktop Menu -->
     <div class="hidden lg:flex space-x-12 text-xs font-semibold tracking-widest uppercase text-gray-300">
-      <a href="#" class="hover:text-white transition-colors relative group">
+      <Link :href="route('shop.home')" class="hover:text-white transition-colors relative group">
         Inicio
         <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
-      </a>
-      <a href="#" class="hover:text-white transition-colors relative group">
+      </Link>
+      <Link :href="route('shop.tienda')" class="hover:text-white transition-colors relative group">
         Tienda
         <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
-      </a>
-      <a href="#" class="hover:text-white transition-colors relative group">
-        Hombres
-        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
-      </a>
-      <a href="#" class="hover:text-white transition-colors relative group">
-        Mujeres
-        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
-      </a>
+      </Link>
       <a href="#" class="hover:text-white transition-colors relative group">
         Ofertas
         <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
@@ -91,10 +84,8 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
   <transition name="slide">
     <div v-if="mobileMenuOpen" class="fixed top-16 left-0 w-full bg-[#111111]/98 backdrop-blur-md z-40 border-b border-white/10 lg:hidden">
       <div class="px-6 py-8 space-y-6">
-        <a href="#" class="block text-sm font-semibold tracking-widest uppercase text-gray-300 hover:text-white transition-colors">Inicio</a>
-        <a href="#" class="block text-sm font-semibold tracking-widest uppercase text-gray-300 hover:text-white transition-colors">Tienda</a>
-        <a href="#" class="block text-sm font-semibold tracking-widest uppercase text-gray-300 hover:text-white transition-colors">Hombres</a>
-        <a href="#" class="block text-sm font-semibold tracking-widest uppercase text-gray-300 hover:text-white transition-colors">Mujeres</a>
+        <Link :href="route('shop.home')" class="block text-sm font-semibold tracking-widest uppercase text-gray-300 hover:text-white transition-colors">Inicio</Link>
+        <Link :href="route('shop.tienda')" class="block text-sm font-semibold tracking-widest uppercase text-gray-300 hover:text-white transition-colors">Tienda</Link>
         <a href="#" class="block text-sm font-semibold tracking-widest uppercase text-gray-300 hover:text-white transition-colors">Ofertas</a>
         <a href="#" class="block text-sm font-semibold tracking-widest uppercase text-gray-300 hover:text-white transition-colors">Nosotros</a>
         <a href="#" class="block text-sm font-semibold tracking-widest uppercase text-gray-300 hover:text-white transition-colors">Contacto</a>

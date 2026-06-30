@@ -6,8 +6,9 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-// 2. Reemplazamos la ruta raíz vieja por la de tu tienda online
+// Rutas de la tienda
 Route::get('/', [ProductController::class, 'index'])->name('shop.home');
+Route::get('/tienda', [ProductController::class, 'shop'])->name('shop.tienda');
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');

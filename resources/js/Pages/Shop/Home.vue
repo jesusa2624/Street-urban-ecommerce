@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import ShopLayout from '@/Layouts/Shop/ShopLayout.vue';
 import ProductCard from '@/Components/Shop/ProductCard.vue';
 
@@ -70,7 +70,7 @@ onMounted(() => {
       </h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Ropa -->
-        <a href="#" class="group relative h-80 rounded-2xl overflow-hidden">
+        <Link :href="`${route('shop.tienda')}?category=Ropa`" class="group relative h-80 rounded-2xl overflow-hidden block">
           <img
             src="/image/shop/ropa.jpeg"
             alt="Ropa"
@@ -81,10 +81,10 @@ onMounted(() => {
             <h3 class="text-2xl font-black uppercase tracking-tight text-white">Ropa</h3>
             <p class="text-sm text-gray-300 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Ver colección</p>
           </div>
-        </a>
+        </Link>
 
         <!-- Calzado -->
-        <a href="#" class="group relative h-80 rounded-2xl overflow-hidden">
+        <Link :href="`${route('shop.tienda')}?category=Calzados`" class="group relative h-80 rounded-2xl overflow-hidden block">
           <img
             src="/image/shop/calzados.jpeg"
             alt="Calzado"
@@ -95,10 +95,10 @@ onMounted(() => {
             <h3 class="text-2xl font-black uppercase tracking-tight text-white">Calzado</h3>
             <p class="text-sm text-gray-300 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Ver colección</p>
           </div>
-        </a>
+        </Link>
 
         <!-- Accesorios -->
-        <a href="#" class="group relative h-80 rounded-2xl overflow-hidden">
+        <Link :href="`${route('shop.tienda')}?category=Accesorios`" class="group relative h-80 rounded-2xl overflow-hidden block">
           <img
             src="/image/shop/accesorio.jpeg"
             alt="Accesorios"
@@ -109,10 +109,10 @@ onMounted(() => {
             <h3 class="text-2xl font-black uppercase tracking-tight text-white">Accesorios</h3>
             <p class="text-sm text-gray-300 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Ver colección</p>
           </div>
-        </a>
+        </Link>
 
         <!-- Sombrería -->
-        <a href="#" class="group relative h-80 rounded-2xl overflow-hidden">
+        <Link :href="`${route('shop.tienda')}?category=Sombrería`" class="group relative h-80 rounded-2xl overflow-hidden block">
           <img
             src="/image/shop/gorro.jpeg"
             alt="Sombrería"
@@ -123,7 +123,7 @@ onMounted(() => {
             <h3 class="text-2xl font-black uppercase tracking-tight text-white">Sombrería</h3>
             <p class="text-sm text-gray-300 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Ver colección</p>
           </div>
-        </a>
+        </Link>
       </div>
     </section>
 
