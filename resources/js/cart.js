@@ -33,3 +33,21 @@ export function add(product) {
 export function totalItems() {
   return getItems().reduce((total, item) => total + item.cantidad, 0);
 }
+
+export function updateQuantity(productId, delta) {
+  const items = getItems();
+  const item = items.find(i => i.id === productId);
+
+  if (item) {
+    item.cantidad += delta;
+    // Si la cantidad llega a 0 o menos, eliminamos el producto
+    if (item.cantidad <= 0) {
+      const filtered = items.filter(i => i.id !== productId);
+      saveItems(filtered);
+    } else {
+      saveItems(items);
+    }
+    window.dispatchEvent(new Event('cart-updated'));
+  }
+}
+

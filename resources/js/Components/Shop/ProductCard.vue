@@ -52,8 +52,10 @@ const productImage = computed(() => {
   return props.product.image;
 });
 
+// Añade productos al carrito y actualiza el contador
 const addToCart = () => {
   add(props.product);
+  window.dispatchEvent(new Event('cart-updated'));
   console.log('Producto agregado');
 };
 

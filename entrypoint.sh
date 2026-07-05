@@ -2,7 +2,7 @@
 
 # Instala Composer y NPM
 composer install
-npm install
+# npm install
 
 # Espera a la base de datos
 until nc -z db 3306; do
@@ -17,6 +17,4 @@ php artisan key:generate --force
 php artisan migrate --force
 php artisan optimize:clear
 
-# npm run build
-# php artisan serve --host=0.0.0.0 --port=3001
 exec apache2-foreground
