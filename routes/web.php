@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Shop\ProductController; // <-- 1. Agregamos esta línea arriba
+use App\Http\Controllers\Shop\CartController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -9,6 +10,7 @@ use Inertia\Inertia;
 // Rutas de la tienda
 Route::get('/', [ProductController::class, 'index'])->name('shop.home');
 Route::get('/tienda', [ProductController::class, 'shop'])->name('shop.tienda');
+Route::get('/carrito', [CartController::class, 'cart'])->name('shop.carrito');
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');

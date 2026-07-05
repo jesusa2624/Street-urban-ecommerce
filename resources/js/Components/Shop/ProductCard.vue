@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import { add } from '@/cart';
 
 const props = defineProps({
   product: {
@@ -50,6 +51,12 @@ const productImage = computed(() => {
   }
   return props.product.image;
 });
+
+const addToCart = () => {
+  add(props.product);
+  console.log('Producto agregado');
+};
+
 </script>
 
 <template>
@@ -163,7 +170,7 @@ const productImage = computed(() => {
             </span>
           </div>
         </div>
-        <button :disabled="!product.stock" class="p-2 bg-white text-black rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+        <button @click="addToCart" :disabled="!product.stock" class="p-2 bg-white text-black rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
