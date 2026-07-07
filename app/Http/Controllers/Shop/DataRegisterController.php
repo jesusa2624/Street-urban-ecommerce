@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class DataRegisterController extends Controller
 {
-  public function register()
+  public function index()
   {
     return Inertia::render('Shop/RegistroDatos', []);
   }
@@ -25,6 +25,6 @@ class DataRegisterController extends Controller
     ]);
 
     // Si la validación pasa, redirigir a la pantalla de verificación
-    return to_route('shop.verificacion');
+    return to_route('shop.confirmarpedido');
   }
 }
