@@ -112,17 +112,19 @@ onMounted(() => {
                 <span class="font-mono">S/ {{ subtotal.toFixed(2) }}</span>
               </div>
             </div>
-            <button 
-              :disabled="isCartEmpty"
-              :class="[
-                'w-full py-4 font-black uppercase tracking-widest transition-all',
-                isCartEmpty 
-                  ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
-                  : 'bg-white text-black hover:bg-gray-200'
-              ]"
-            >
-              Finalizar Pedido
-            </button>
+            <Link :href="route('shop.registrodatos')" :class="{'pointer-events-none': isCartEmpty}">
+              <button 
+                :disabled="isCartEmpty"
+                :class="[
+                  'w-full py-4 font-black uppercase tracking-widest transition-all',
+                  isCartEmpty 
+                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
+                    : 'bg-white text-black hover:bg-gray-200'
+                ]"
+              >
+                Finalizar Pedido
+              </button>
+            </Link>
           </div>
         </div>
       </div>

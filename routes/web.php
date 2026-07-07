@@ -1,8 +1,9 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\Shop\ProductController; // <-- 1. Agregamos esta línea arriba
+use App\Http\Controllers\Shop\ProductController;
 use App\Http\Controllers\Shop\CartController;
+use App\Http\Controllers\Shop\DataRegisterController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -11,6 +12,7 @@ use Inertia\Inertia;
 Route::get('/', [ProductController::class, 'index'])->name('shop.home');
 Route::get('/tienda', [ProductController::class, 'shop'])->name('shop.tienda');
 Route::get('/carrito', [CartController::class, 'cart'])->name('shop.carrito');
+Route::get('/registro-datos', [DataRegisterController::class, 'register'])->name('shop.registrodatos');
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
