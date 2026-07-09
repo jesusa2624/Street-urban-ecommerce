@@ -1,0 +1,9 @@
+services:
+  app:
+    mem_limit: 512m
+
+  db:
+    mem_limit: 256m
+
+  vite:
+    mem_limit: 512m
