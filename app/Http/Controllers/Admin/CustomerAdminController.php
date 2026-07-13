@@ -24,17 +24,26 @@ class CustomerAdminController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:6|confirmed',
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users',
+                'password' => 'required|min:6|confirmed',
+            ]);
 
-        $validated['password'] = bcrypt($validated['password']);
+            $validated['password'] = bcrypt($validated['password']);
 
-        User::create($validated);
+            \Log::info('Creando usuario:', $validated);
 
-        return redirect()->route('admin.customers.index')->with('success', 'Cliente creado exitosamente');
+            $user = User::create($validated);
+
+            \Log::info('Usuario creado:', ['id' => $user->id, 'email' => $user->email]);
+
+            return redirect()->route('admin.customers.index')->with('success', 'Cliente creado exitosamente');
+        } catch (\Exception $e) {
+            \Log::error('Error al crear usuario: ' . $e->getMessage());
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
     }
 
     public function edit(User $customer)

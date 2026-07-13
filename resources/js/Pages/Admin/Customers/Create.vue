@@ -3,8 +3,12 @@
     <template #header>Crear Cliente</template>
 
     <div class="max-w-2xl">
+      <div v-if="processing" class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-4">
+        Guardando...
+      </div>
+
       <div class="bg-white rounded-lg shadow p-6">
-        <form @submit.prevent="submit">
+        <form @submit.prevent="submit" @keydown="form.clearErrors()">
           <div class="mb-4">
             <label class="block text-sm font-semibold mb-2">Nombre *</label>
             <input
@@ -72,7 +76,7 @@
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Link, useForm } from '@inertiajs/vue3';
 
-const { data: form, errors, post } = useForm({
+const { data: form, errors, post, processing } = useForm({
   name: '',
   email: '',
   password: '',
@@ -80,6 +84,10 @@ const { data: form, errors, post } = useForm({
 });
 
 const submit = () => {
-  post(route('admin.customers.store'));
+  post(route('admin.customers.store'), {
+    onError: (errors) => {
+      console.log('Errores:', errors);
+    },
+  });
 };
 </script>
