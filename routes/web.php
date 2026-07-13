@@ -9,6 +9,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Admin\ProductAdminController;
+use App\Http\Controllers\Admin\CustomerAdminController;
 
 // Rutas de administración
 Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
@@ -17,6 +18,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
     })->name('admin.dashboard');
 
     Route::resource('products', ProductAdminController::class, ['as' => 'admin']);
+    Route::resource('customers', CustomerAdminController::class, ['as' => 'admin']);
 });
 
 // Rutas de la tienda
