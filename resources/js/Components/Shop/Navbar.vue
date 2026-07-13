@@ -80,20 +80,22 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
       </Link>
 
       <!-- Admin/Login Buttons -->
-      <div class="hidden sm:flex items-center space-x-2">
+      <div class="hidden sm:flex items-center space-x-3">
         <Link
           v-if="page.props.auth?.user"
           :href="route('admin.dashboard')"
-          class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition-all"
+          class="px-4 py-2 border border-white/40 text-white text-xs font-semibold uppercase tracking-widest hover:bg-white/10 hover:border-white/70 transition-all duration-300 group relative overflow-hidden"
         >
-          🎛️ Admin
+          <span class="relative z-10">Panel Admin</span>
+          <div class="absolute inset-0 bg-white/5 transform scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300"></div>
         </Link>
         <template v-else>
           <Link
             :href="route('login')"
-            class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition-all"
+            class="px-4 py-2 border border-white/40 text-white text-xs font-semibold uppercase tracking-widest hover:bg-white/10 hover:border-white/70 transition-all duration-300 group relative overflow-hidden"
           >
-            🔑 Login
+            <span class="relative z-10">Ingresar</span>
+            <div class="absolute inset-0 bg-white/5 transform scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300"></div>
           </Link>
         </template>
       </div>
