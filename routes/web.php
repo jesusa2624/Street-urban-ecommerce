@@ -8,6 +8,16 @@ use App\Http\Controllers\Shop\CheckoutValidateController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\Admin\ProductAdminController;
+
+// Rutas de administración
+Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
+    Route::get('/dashboard', function () {
+        return Inertia::render('Admin/Dashboard');
+    })->name('admin.dashboard');
+
+    Route::resource('products', ProductAdminController::class, ['as' => 'admin']);
+});
 
 // Rutas de la tienda
 Route::get('/', [ProductController::class, 'index'])->name('shop.home');
