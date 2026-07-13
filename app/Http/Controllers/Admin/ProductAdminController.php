@@ -13,11 +13,19 @@ class ProductAdminController extends Controller
 
     public function index()
     {
-        $response = Http::get("{$this->apiUrl}/products?per_page=100");
-        $products = $response->json()['data'] ?? [];
+        try {
+            $response = Http::timeout(5)->get("{$this->apiUrl}/products?per_page=100");
+            $products = $response->successful() ? $response->json()['data'] ?? [] : [];
+        } catch (\Exception $e) {
+            $products = [];
+        }
 
-        $categoriesResponse = Http::get("{$this->apiUrl}/categories?per_page=100");
-        $categories = $categoriesResponse->json()['data'] ?? [];
+        try {
+            $categoriesResponse = Http::timeout(5)->get("{$this->apiUrl}/categories?per_page=100");
+            $categories = $categoriesResponse->successful() ? $categoriesResponse->json()['data'] ?? [] : [];
+        } catch (\Exception $e) {
+            $categories = [];
+        }
 
         return Inertia::render('Admin/Products/Index', [
             'products' => $products,
@@ -27,8 +35,12 @@ class ProductAdminController extends Controller
 
     public function create()
     {
-        $response = Http::get("{$this->apiUrl}/categories?per_page=100");
-        $categories = $response->json()['data'] ?? [];
+        try {
+            $response = Http::timeout(5)->get("{$this->apiUrl}/categories?per_page=100");
+            $categories = $response->successful() ? $response->json()['data'] ?? [] : [];
+        } catch (\Exception $e) {
+            $categories = [];
+        }
 
         return Inertia::render('Admin/Products/Create', [
             'categories' => $categories,
@@ -60,11 +72,19 @@ class ProductAdminController extends Controller
 
     public function edit($id)
     {
-        $response = Http::get("{$this->apiUrl}/products/{$id}");
-        $product = $response->json();
+        try {
+            $response = Http::timeout(5)->get("{$this->apiUrl}/products/{$id}");
+            $product = $response->successful() ? $response->json() : null;
+        } catch (\Exception $e) {
+            $product = null;
+        }
 
-        $categoriesResponse = Http::get("{$this->apiUrl}/categories?per_page=100");
-        $categories = $categoriesResponse->json()['data'] ?? [];
+        try {
+            $categoriesResponse = Http::timeout(5)->get("{$this->apiUrl}/categories?per_page=100");
+            $categories = $categoriesResponse->successful() ? $categoriesResponse->json()['data'] ?? [] : [];
+        } catch (\Exception $e) {
+            $categories = [];
+        }
 
         return Inertia::render('Admin/Products/Edit', [
             'product' => $product,
