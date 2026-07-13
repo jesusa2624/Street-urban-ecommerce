@@ -54,11 +54,19 @@ function handleImageError() {
                             />
                         </svg>
                     </div>
-                    <nav v-if="canLogin" class="-mx-3 flex flex-1 justify-end">
+                    <nav v-if="canLogin" class="-mx-3 flex flex-1 justify-end gap-2">
+                        <Link
+                            v-if="$page.props.auth.user"
+                            :href="route('admin.dashboard')"
+                            class="rounded-md px-4 py-2 bg-blue-600 text-white font-semibold transition hover:bg-blue-700 focus:outline-none focus-visible:ring-[#FF2D20]"
+                        >
+                            🎛️ Panel Admin
+                        </Link>
+
                         <Link
                             v-if="$page.props.auth.user"
                             :href="route('dashboard')"
-                            class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white"
+                            class="rounded-md px-4 py-2 bg-gray-600 text-white font-semibold transition hover:bg-gray-700 focus:outline-none focus-visible:ring-[#FF2D20]"
                         >
                             Dashboard
                         </Link>
@@ -66,17 +74,17 @@ function handleImageError() {
                         <template v-else>
                             <Link
                                 :href="route('login')"
-                                class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white"
+                                class="rounded-md px-4 py-2 bg-blue-600 text-white font-semibold transition hover:bg-blue-700 focus:outline-none focus-visible:ring-[#FF2D20]"
                             >
-                                Log in
+                                🔑 Iniciar Sesión
                             </Link>
 
                             <Link
                                 v-if="canRegister"
                                 :href="route('register')"
-                                class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white"
+                                class="rounded-md px-4 py-2 bg-green-600 text-white font-semibold transition hover:bg-green-700 focus:outline-none focus-visible:ring-[#FF2D20]"
                             >
-                                Register
+                                ✏️ Registrarse
                             </Link>
                         </template>
                     </nav>
