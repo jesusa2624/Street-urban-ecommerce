@@ -1,7 +1,9 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { totalItems } from '@/cart';
+
+const page = usePage();
 
 const scrolled = ref(false);
 const mobileMenuOpen = ref(false);
@@ -61,7 +63,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
     </div>
 
     <!-- Right Section -->
-    <div class="flex items-center space-x-6 text-sm text-white">
+    <div class="flex items-center space-x-4 text-sm text-white">
       <!-- Search Button -->
       <button class="p-2 hover:bg-white/10 rounded-lg transition-all">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
@@ -76,6 +78,25 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
         </svg>
         <span class="text-xs font-semibold tracking-wide">{{ items }}</span>
       </Link>
+
+      <!-- Admin/Login Buttons -->
+      <div class="hidden sm:flex items-center space-x-2">
+        <Link
+          v-if="page.props.auth?.user"
+          :href="route('admin.dashboard')"
+          class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition-all"
+        >
+          🎛️ Admin
+        </Link>
+        <template v-else>
+          <Link
+            :href="route('login')"
+            class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition-all"
+          >
+            🔑 Login
+          </Link>
+        </template>
+      </div>
 
       <!-- Mobile Menu Button -->
       <button @click="toggleMobileMenu" class="lg:hidden p-2">
