@@ -13,46 +13,46 @@
     </div>
 
     <!-- Mensaje de éxito -->
-    <div v-if="$page.props.flash?.success" class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
-      {{ $page.props.flash.success }}
+    <div v-if="$page.props.flash?.success" class="mb-4 p-4 bg-green-900/30 border border-green-700 text-green-400 rounded-lg">
+      ✓ {{ $page.props.flash.success }}
     </div>
 
-    <div class="bg-white rounded-lg shadow overflow-x-auto">
+    <div class="bg-[#111111] border border-gray-800 rounded-lg shadow-xl overflow-hidden">
       <table class="w-full">
-        <thead class="bg-gray-100 border-b">
+        <thead class="bg-[#0a0a0a] border-b border-gray-800">
           <tr>
-            <th class="px-6 py-3 text-left text-sm font-semibold">ID</th>
-            <th class="px-6 py-3 text-left text-sm font-semibold">Nombre</th>
-            <th class="px-6 py-3 text-left text-sm font-semibold">Email</th>
-            <th class="px-6 py-3 text-left text-sm font-semibold">Fecha Registro</th>
-            <th class="px-6 py-3 text-left text-sm font-semibold">Acciones</th>
+            <th class="px-6 py-4 text-left text-sm font-bold text-gray-300 uppercase tracking-wider">ID</th>
+            <th class="px-6 py-4 text-left text-sm font-bold text-gray-300 uppercase tracking-wider">Nombre</th>
+            <th class="px-6 py-4 text-left text-sm font-bold text-gray-300 uppercase tracking-wider">Email</th>
+            <th class="px-6 py-4 text-left text-sm font-bold text-gray-300 uppercase tracking-wider">Fecha Registro</th>
+            <th class="px-6 py-4 text-left text-sm font-bold text-gray-300 uppercase tracking-wider">Acciones</th>
           </tr>
         </thead>
-        <tbody class="divide-y">
-          <tr v-for="customer in customers.data" :key="customer.id" class="hover:bg-gray-50 transition">
-            <td class="px-6 py-4 text-sm">{{ customer.id }}</td>
-            <td class="px-6 py-4 font-medium">{{ customer.name }}</td>
-            <td class="px-6 py-4 text-sm">{{ customer.email }}</td>
-            <td class="px-6 py-4 text-sm text-gray-600">
+        <tbody class="divide-y divide-gray-800">
+          <tr v-for="customer in customers.data" :key="customer.id" class="hover:bg-white/5 transition duration-200">
+            <td class="px-6 py-4 text-sm text-gray-400">{{ customer.id }}</td>
+            <td class="px-6 py-4 font-medium text-white">{{ customer.name }}</td>
+            <td class="px-6 py-4 text-sm text-gray-300">{{ customer.email }}</td>
+            <td class="px-6 py-4 text-sm text-gray-500">
               {{ formatDate(customer.created_at) }}
             </td>
-            <td class="px-6 py-4 space-x-3">
+            <td class="px-6 py-4 space-x-2">
               <Link
                 :href="route('admin.customers.edit', customer.id)"
-                class="inline-block px-3 py-1 bg-yellow-500 text-white text-sm rounded hover:bg-yellow-600 transition font-semibold"
+                class="inline-block px-3 py-1.5 bg-yellow-600/20 text-yellow-400 text-sm rounded hover:bg-yellow-600/40 transition duration-200 font-semibold border border-yellow-600/30 hover:border-yellow-600"
               >
                 ✏️ Editar
               </Link>
               <button
                 @click="deleteCustomer(customer.id)"
-                class="inline-block px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600 transition font-semibold"
+                class="inline-block px-3 py-1.5 bg-red-600/20 text-red-400 text-sm rounded hover:bg-red-600/40 transition duration-200 font-semibold border border-red-600/30 hover:border-red-600"
               >
                 🗑️ Eliminar
               </button>
             </td>
           </tr>
           <tr v-if="customers.data.length === 0">
-            <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+            <td colspan="5" class="px-6 py-12 text-center text-gray-500">
               No hay clientes registrados
             </td>
           </tr>

@@ -11,7 +11,7 @@ class CustomerAdminController extends Controller
 {
     public function index()
     {
-        $customers = User::paginate(10);
+        $customers = User::orderByDesc('created_at')->paginate(10);
         return Inertia::render('Admin/Customers/Index', [
             'customers' => $customers,
         ]);
