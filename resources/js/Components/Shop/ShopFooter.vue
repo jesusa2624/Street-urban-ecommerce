@@ -38,7 +38,7 @@ import { Link } from '@inertiajs/vue3';
           <li><Link href="#" class="text-gray-400 hover:text-white transition-colors text-sm">Envíos y Entregas</Link></li>
           <li><Link href="#" class="text-gray-400 hover:text-white transition-colors text-sm">Cambios y Devoluciones</Link></li>
           <li><Link href="#" class="text-gray-400 hover:text-white transition-colors text-sm">Guía de Tallas</Link></li>
-          <li><Link href="#" class="text-gray-400 hover:text-white transition-colors text-sm">Contacto</Link></li>
+          <li><Link :href="route('shop.contacto')" class="text-gray-400 hover:text-white transition-colors text-sm">Contacto</Link></li>
         </ul>
       </div>
 
