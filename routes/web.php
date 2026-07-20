@@ -6,6 +6,7 @@ use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\DataRegisterController;
 use App\Http\Controllers\Shop\CheckoutValidateController;
 use App\Http\Controllers\Shop\ContactController;
+use App\Http\Controllers\Shop\AboutController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -29,6 +30,7 @@ Route::get('/carrito', [CartController::class, 'cart'])->name('shop.carrito');
 Route::get('/registro-datos', [DataRegisterController::class, 'index'])->name('shop.registrodatos');
 Route::get('/confirmar-pedido', [CheckoutValidateController::class, 'index'])->name('shop.confirmarpedido');
 Route::get('/contacto', [ContactController::class, 'index'])->name('shop.contacto');
+Route::get('/nosotros', [AboutController::class, 'index'])->name('shop.nosotros');
 // Route::post('/contacto', [ContactController::class, 'store'])->name('shop.store');
 Route::post('/validar-registro', [DataRegisterController::class, 'validateRegisterForm'])->name('shop.validateRegisterForm');
 
