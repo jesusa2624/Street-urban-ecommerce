@@ -24,15 +24,33 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
 });
 
 // Rutas de la tienda
-Route::get('/', [ProductController::class, 'index'])->name('shop.home');
-Route::get('/tienda', [ProductController::class, 'shop'])->name('shop.tienda');
-Route::get('/carrito', [CartController::class, 'cart'])->name('shop.carrito');
-Route::get('/registro-datos', [DataRegisterController::class, 'index'])->name('shop.registrodatos');
-Route::get('/confirmar-pedido', [CheckoutValidateController::class, 'index'])->name('shop.confirmarpedido');
-Route::get('/contacto', [ContactController::class, 'index'])->name('shop.contacto');
-Route::get('/nosotros', [AboutController::class, 'index'])->name('shop.nosotros');
-// Route::post('/contacto', [ContactController::class, 'store'])->name('shop.store');
-Route::post('/validar-registro', [DataRegisterController::class, 'validateRegisterForm'])->name('shop.validateRegisterForm');
+Route::name('shop.')->group(function () {
+  // Páginas principales
+  Route::get('/', [ProductController::class, 'index'])->name('home');
+  Route::get('/tienda', [ProductController::class, 'shop'])->name('tienda');
+  Route::get('/contacto', [ContactController::class, 'index'])->name('contacto');
+  Route::get('/nosotros', [AboutController::class, 'index'])->name('nosotros');
+
+  // Carrito y checkout
+  Route::get('/carrito', [CartController::class, 'cart'])->name('carrito');
+  Route::get('/registro-datos', [DataRegisterController::class, 'index'])->name('registrodatos');
+  Route::post('/validar-registro', [DataRegisterController::class, 'validateRegisterForm'])->name('validateRegisterForm');
+  Route::get('/confirmar-pedido', [CheckoutValidateController::class, 'index'])->name('confirmarpedido');
+
+  // Páginas legales y atención
+  Route::get('/terminos-y-condiciones', function () {
+    return Inertia::render('Shop/Legal/Terminos');
+  })->name('terminos');
+  Route::get('/politica-de-privacidad', function () {
+    return Inertia::render('Shop/Legal/Privacidad');
+  })->name('privacidad');
+  Route::get('/cambios-y-devoluciones', function () {
+    return Inertia::render('Shop/Legal/CambiosDevoluciones');
+  })->name('cambios');
+  Route::get('/libro-de-reclamaciones', function () {
+    return Inertia::render('Shop/Legal/Reclamaciones');
+  })->name('reclamaciones');
+});
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
