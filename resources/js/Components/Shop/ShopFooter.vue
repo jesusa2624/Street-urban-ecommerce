@@ -63,8 +63,9 @@ import { Link } from '@inertiajs/vue3';
       <p>&copy; 2026 Street Urban. All rights reserved.</p>
       <div class="flex gap-6">
         <Link :href="route('shop.terminos')" class="hover:text-white transition-colors">Términos de Servicio</Link>
-        <Link :href="route('shop.privacidad')" class="hover:text-white transition-colors">Política de Privacidad</Link>
+        <Link :href="route('shop.privacidad')" class="hover:text-white transition-colors">Privacidad</Link>
         <a href="#" class="hover:text-white transition-colors">Cookies</a>
+        <Link :href="route('shop.reclamaciones')" class="hover:text-white transition-colors">Libro de Reclamaciones</Link>
       </div>
     </div>
   </footer>
