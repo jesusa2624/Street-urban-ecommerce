@@ -52,14 +52,14 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
         Ofertas
         <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
       </a>
-      <a href="#" class="hover:text-white transition-colors relative group">
+      <Link :href="route('shop.nosotros')" class="hover:text-white transition-colors relative group">
         Nosotros
         <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
-      </a>
-      <a href="#" class="hover:text-white transition-colors relative group">
+      </Link>
+      <Link :href="route('shop.contacto')" class="hover:text-white transition-colors relative group">
         Contacto
         <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
-      </a>
+      </Link>
     </div>
 
     <!-- Right Section -->
@@ -119,8 +119,8 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
         <Link :href="route('shop.home')" class="block text-sm font-semibold tracking-widest uppercase text-gray-300 hover:text-white transition-colors">Inicio</Link>
         <Link :href="route('shop.tienda')" class="block text-sm font-semibold tracking-widest uppercase text-gray-300 hover:text-white transition-colors">Tienda</Link>
         <a href="#" class="block text-sm font-semibold tracking-widest uppercase text-gray-300 hover:text-white transition-colors">Ofertas</a>
-        <a href="#" class="block text-sm font-semibold tracking-widest uppercase text-gray-300 hover:text-white transition-colors">Nosotros</a>
-        <a href="#" class="block text-sm font-semibold tracking-widest uppercase text-gray-300 hover:text-white transition-colors">Contacto</a>
+        <Link :href="route('shop.nosotros')" class="block text-sm font-semibold tracking-widest uppercase text-gray-300 hover:text-white transition-colors">Nosotros</Link>
+        <Link :href="route('shop.contacto')" class="block text-sm font-semibold tracking-widest uppercase text-gray-300 hover:text-white transition-colors">Contacto</Link>
       </div>
     </div>
   </transition>
