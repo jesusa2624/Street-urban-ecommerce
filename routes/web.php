@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Admin\ProductAdminController;
 use App\Http\Controllers\Admin\CustomerAdminController;
+use App\Http\Controllers\Auth\VerificationController;
+use App\Http\Controllers\Auth\ActivateAccountController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\LogoutController;
 
 // Rutas de administración
 Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
@@ -61,5 +65,16 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+// Rutas de autenticación (públicas)
+Route::post('/api/auth/check-email', [VerificationController::class, 'checkEmail']);
+Route::post('/api/auth/send-verification-email', [VerificationController::class, 'sendVerificationEmail']);
+Route::post('/auth/login-action', [LoginController::class, 'loginAction'])->name('auth.login-action');
+Route::post('/api/auth/login', [LoginController::class, 'login']);
+Route::post('/auth/logout', [LogoutController::class, 'logout'])->name('auth.logout');
+
+// Rutas de activación de cuenta (públicas)
+Route::get('/activate-account', [ActivateAccountController::class, 'show'])->name('activate-account.show');
+Route::post('/api/auth/activate-account', [ActivateAccountController::class, 'store'])->name('activate-account.store');
 
 require __DIR__.'/auth.php';

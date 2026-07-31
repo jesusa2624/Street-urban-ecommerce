@@ -15,6 +15,20 @@ export default {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
+            colors: {
+                'street-orange': {
+                    50: '#fff7f0',
+                    100: '#ffedde',
+                    200: '#ffdac2',
+                    300: '#ffc2a2',
+                    400: '#ff8c42',
+                    500: '#ff7a1e',
+                    600: '#e67e2d',
+                    700: '#cc6b1a',
+                    800: '#b35a12',
+                    900: '#8a4410',
+                },
+            },
         },
     },
 

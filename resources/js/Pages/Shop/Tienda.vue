@@ -105,7 +105,7 @@ const goToPage = (page) => {
           <h1 class="text-3xl md:text-4xl lg:text-5xl font-black uppercase tracking-tight italic leading-tight mb-4 max-w-4xl">
             Todos <span class="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500">Nuestros Productos</span>
           </h1>
-          <div class="h-1.5 w-24 bg-gradient-to-r from-white via-white to-gray-600 rounded-full"></div>
+          <div class="h-1.5 w-24 bg-gradient-to-r from-[#ff8c42] to-white rounded-full"></div>
         </div>
       </div>
     </section>
@@ -131,8 +131,8 @@ const goToPage = (page) => {
                   :class="[
                     'w-full text-left px-4 py-3 rounded-lg font-semibold text-sm transition-all',
                     selectedCategory === category.name
-                      ? 'bg-white text-black'
-                      : 'bg-transparent border border-gray-700 text-gray-300 hover:border-gray-500 hover:text-white'
+                      ? 'bg-[#ff8c42] text-black'
+                      : 'bg-transparent border border-gray-700 text-gray-300 hover:border-[#ff8c42]/50 hover:text-white'
                   ]"
                 >
                   <div class="flex justify-between items-center">
@@ -155,8 +155,8 @@ const goToPage = (page) => {
                   :class="[
                     'w-full text-left px-4 py-3 rounded-lg font-semibold text-sm transition-all',
                     !selectedBrand
-                      ? 'bg-white text-black'
-                      : 'bg-transparent border border-gray-700 text-gray-300 hover:border-gray-500 hover:text-white'
+                      ? 'bg-[#ff8c42] text-black'
+                      : 'bg-transparent border border-gray-700 text-gray-300 hover:border-[#ff8c42]/50 hover:text-white'
                   ]"
                 >
                   <span>Ver todas</span>
@@ -169,8 +169,8 @@ const goToPage = (page) => {
                   :class="[
                     'w-full text-left px-4 py-3 rounded-lg font-semibold text-sm transition-all',
                     selectedBrand === brand.name
-                      ? 'bg-white text-black'
-                      : 'bg-transparent border border-gray-700 text-gray-300 hover:border-gray-500 hover:text-white'
+                      ? 'bg-[#ff8c42] text-black'
+                      : 'bg-transparent border border-gray-700 text-gray-300 hover:border-[#ff8c42]/50 hover:text-white'
                   ]"
                 >
                   <div class="flex justify-between items-center">
@@ -232,8 +232,8 @@ const goToPage = (page) => {
                   :class="[
                     'px-3 py-2 rounded-lg font-semibold text-sm transition-colors',
                     currentPage === page
-                      ? 'bg-white text-black'
-                      : 'border border-gray-700 text-gray-300 hover:border-gray-500 hover:text-white'
+                      ? 'bg-[#ff8c42] text-black'
+                      : 'border border-gray-700 text-gray-300 hover:border-[#ff8c42]/50 hover:text-white'
                   ]"
                 >
                   {{ page }}
