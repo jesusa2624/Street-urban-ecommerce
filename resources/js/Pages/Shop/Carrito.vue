@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import ShopLayout from '@/Layouts/Shop/ShopLayout.vue';
+import TwoColsLayout from '@/Layouts/Shop/TwoColsLayout.vue';
 import { getItems, saveItems, updateQuantity } from '@/cart';
 
 const cartItems = ref([]);
@@ -40,6 +41,7 @@ onMounted(() => {
 </script>
 
 <template>
+
   <Head title="Carrito" />
   <ShopLayout>
     <div class="pt-20"></div>
@@ -61,73 +63,72 @@ onMounted(() => {
       </div>
     </section>
 
-    <section class="px-4 md:px-8 lg:px-16 max-w-[1400px] mx-auto pb-24">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <!-- Productos del carrito -->
-        <div class="lg:col-span-2 space-y-6">
-          <!-- Si el carrito está vacío -->
-          <div v-if="cartItems.length === 0" class="py-20 text-center border border-dashed border-gray-800 rounded-2xl">
-            <p>Tu carrito está vacío.</p>
-            <Link :href="route('shop.tienda')" class="mt-4 inline-block text-white border-b border-white hover:opacity-70">Ver productos</Link>
-          </div>
+    <!-- Contenido en dos columnas -->
+    <TwoColsLayout>
+      <!-- Productos del carrito -->
+      <template #left-content>
+        <!-- Si el carrito está vacío -->
+        <div v-if="cartItems.length === 0" class="py-20 text-center border border-dashed border-gray-800 rounded-2xl">
+          <p>Tu carrito está vacío.</p>
+          <Link :href="route('shop.tienda')"
+            class="mt-4 inline-block text-white border-b border-white hover:opacity-70">Ver productos</Link>
+        </div>
 
-          <!-- Recorre los productos -->
-          <div v-else class="space-y-6">
-            <div v-for="item in cartItems" :key="item.id" class="flex gap-6 p-4 border border-gray-800 rounded-xl hover:border-gray-600 transition-colors">
-              <img :src="item.image" :alt="item.name" class="w-20 h-20 object-cover rounded-lg bg-gray-900" />
-              <div class="flex-1 flex justify-between items-center">
-                <div>
-                  <h3 class="font-bold text-lg uppercase">{{ item.name }}</h3>
-                  
-                  <div class="flex items-center gap-3 mt-2">
-                    <button @click="changeQuantity(item.id, -1)" class="w-8 h-8 flex items-center justify-center border border-gray-700 hover:border-white transition-colors">&minus;</button>
-                    <span class="font-mono w-8 text-center">{{ item.cantidad }}</span>
-                    <button  @click="changeQuantity(item.id, 1)" class="w-8 h-8 flex items-center justify-center border border-gray-700 hover:border-white transition-colors">+</button>
-                  </div>
-                </div>
+        <!-- Recorre los productos -->
+        <div v-else class="space-y-6">
+          <div v-for="item in cartItems" :key="item.id"
+            class="flex gap-6 p-4 border border-gray-800 rounded-xl hover:border-gray-600 transition-colors">
+            <img :src="item.image" :alt="item.name" class="w-20 h-20 object-cover rounded-lg bg-gray-900" />
+            <div class="flex-1 flex justify-between items-center">
+              <div>
+                <h3 class="font-bold text-lg uppercase">{{ item.name }}</h3>
 
-                <div class="text-right">
-                  <p class="font-mono mb-2">S/ {{ (item.price * item.cantidad).toFixed(2) }}</p>
-                  <button @click="removeItem(item.id)" class="text-xs text-red-500/70 hover:text-red-500 uppercase tracking-widest">
-                    Eliminar
-                  </button>
+                <div class="flex items-center gap-3 mt-2">
+                  <button @click="changeQuantity(item.id, -1)"
+                    class="w-8 h-8 flex items-center justify-center border border-gray-700 hover:border-white transition-colors">&minus;</button>
+                  <span class="font-mono w-8 text-center">{{ item.cantidad }}</span>
+                  <button @click="changeQuantity(item.id, 1)"
+                    class="w-8 h-8 flex items-center justify-center border border-gray-700 hover:border-white transition-colors">+</button>
                 </div>
+              </div>
+
+              <div class="text-right">
+                <p class="font-mono mb-2">S/ {{ (item.price * item.cantidad).toFixed(2) }}</p>
+                <button @click="removeItem(item.id)"
+                  class="text-xs text-red-500/70 hover:text-red-500 uppercase tracking-widest">
+                  Eliminar
+                </button>
               </div>
             </div>
           </div>
         </div>
+      </template>
 
-        <!-- Barra lateral derecha -->
-        <div class="lg:col-span-1">
-          <div class="sticky top-28 bg-[#0a0a0a] p-8 border border-gray-800 rounded-2xl">
-            <h2 class="text-xl font-black uppercase mb-6 italic">Resumen</h2>
-            <div class="space-y-4 mb-8">
-              <div class="flex justify-between text-gray-400">
-                <span>Subtotal</span>
-                <span class="font-mono">S/ {{ subtotal.toFixed(2) }}</span>
-              </div>
-              <div class="h-px bg-gray-800"></div>
-              <div class="flex justify-between text-2xl font-black uppercase">
-                <span>Total</span>
-                <span class="font-mono">S/ {{ subtotal.toFixed(2) }}</span>
-              </div>
-            </div>
-            <Link :href="route('shop.registrodatos')" :class="{'pointer-events-none': isCartEmpty}">
-              <button 
-                :disabled="isCartEmpty"
-                :class="[
-                  'w-full py-4 font-black uppercase tracking-widest transition-all',
-                  isCartEmpty 
-                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
-                    : 'bg-white text-black hover:bg-gray-200'
-                ]"
-              >
-                Finalizar Pedido
-              </button>
-            </Link>
+      <!-- Barra lateral derecha -->
+      <template #right-sidebar>
+        <h2 class="text-xl font-black uppercase mb-6 italic">Resumen</h2>
+        <div class="space-y-4 mb-8">
+          <div class="flex justify-between text-gray-400">
+            <span>Subtotal</span>
+            <span class="font-mono">S/ {{ subtotal.toFixed(2) }}</span>
+          </div>
+          <div class="h-px bg-gray-800"></div>
+          <div class="flex justify-between text-2xl font-black uppercase">
+            <span>Total</span>
+            <span class="font-mono">S/ {{ subtotal.toFixed(2) }}</span>
           </div>
         </div>
-      </div>
-    </section>
+        <Link :href="route('shop.registrodatos')" :class="{ 'pointer-events-none': isCartEmpty }">
+          <button :disabled="isCartEmpty" :class="[
+            'w-full py-4 font-black uppercase tracking-widest transition-all rounded-lg',
+            isCartEmpty
+              ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+              : 'bg-street-orange-600 text-black hover:bg-street-orange-300'
+          ]">
+            Finalizar Pedido
+          </button>
+        </Link>
+      </template>
+    </TwoColsLayout>
   </ShopLayout>
 </template>

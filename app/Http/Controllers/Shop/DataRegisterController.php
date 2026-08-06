@@ -10,7 +10,7 @@ class DataRegisterController extends Controller
 {
   public function index()
   {
-    return Inertia::render('Shop/RegistroDatos', []);
+    return Inertia::render('Shop/Compra/RegistroDatos', []);
   }
 
   public function validateRegisterForm(ValidateRegisterRequest $request)

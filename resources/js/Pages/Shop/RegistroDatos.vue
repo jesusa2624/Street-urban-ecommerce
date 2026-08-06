@@ -2,6 +2,7 @@
 import { ref, reactive, computed, onMounted } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import ShopLayout from '@/Layouts/Shop/ShopLayout.vue';
+import TwoColsLayout from '@/Layouts/Shop/TwoColsLayout.vue';
 import { getItems } from '@/cart';
 
 const cartItems = ref([]);
@@ -64,10 +65,9 @@ onMounted(() => {
       </div>
     </section>
 
-    <section class="px-4 md:px-8 lg:px-16 max-w-[1400px] mx-auto pb-24">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        
-        <div class="lg:col-span-2">
+    <TwoColsLayout>
+      <template #left-content>
+        <div class="gap-6 p-8 border border-gray-800 rounded-xl transition-colors">
           <h2 class="text-3xl font-black uppercase italic mb-8">Información de Facturación</h2>
           <form @submit.prevent="submitForm" class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -101,35 +101,34 @@ onMounted(() => {
             </div>
           </form>
         </div>
+      </template>
 
-        <div class="lg:col-span-1">
-          <div class="sticky top-28 bg-[#0a0a0a] p-8 border border-gray-800 rounded-2xl">
-            <h2 class="text-xl font-black uppercase mb-6 italic">Resumen del Pedido</h2>
-            <div class="space-y-4 mb-8 text-sm">
-              <div v-for="item in cartItems" :key="item.id" class="flex justify-between">
-                <span>{{ item.cantidad }}x {{ item.name }}</span>
-                <span>S/ {{ (item.price * item.cantidad).toFixed(2) }}</span>
-              </div>
-              <div class="h-px bg-gray-800 my-4"></div>
-              <div class="flex justify-between text-xl font-black uppercase">
-                <span>Total</span>
-                <span>S/ {{ subtotal.toFixed(2) }}</span>
-              </div>
-            </div>
-            
-            <button 
-              @click="submitForm"
-              :disabled="!isFormValid"
-              :class="[
-                'w-full py-4 font-black uppercase tracking-widest transition-all',
-                isFormValid ? 'bg-white text-black hover:bg-gray-200' : 'bg-gray-800 text-gray-500 cursor-not-allowed'
-              ]"
-            >
-              Confirmar Datos
-            </button>
+      <template #right-sidebar>
+        <h2 class="text-xl font-black uppercase mb-6 italic">Resumen del Pedido</h2>
+        <div class="space-y-4 mb-8 text-sm">
+          <div v-for="item in cartItems" :key="item.id" class="flex justify-between">
+            <span>{{ item.cantidad }}x {{ item.name }}</span>
+            <span>S/ {{ (item.price * item.cantidad).toFixed(2) }}</span>
+          </div>
+          <div class="h-px bg-gray-800 my-4"></div>
+          <div class="flex justify-between text-xl font-black uppercase">
+            <span>Total</span>
+            <span>S/ {{ subtotal.toFixed(2) }}</span>
           </div>
         </div>
-      </div>
-    </section>
+        <button 
+          @click="submitForm"
+          :disabled="!isFormValid"
+          :class="[
+            'w-full py-4 font-black uppercase tracking-widest transition-all rounded-lg',
+            isFormValid
+              ? 'bg-street-orange-600 text-black hover:bg-street-orange-300'
+              : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+          ]"
+        >
+          Confirmar Datos
+        </button>
+      </template>
+    </TwoColsLayout>
   </ShopLayout>
 </template>
