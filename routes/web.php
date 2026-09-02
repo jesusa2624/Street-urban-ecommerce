@@ -50,7 +50,7 @@ Route::name('shop.')->group(function () {
   Route::get('/nosotros', [AboutController::class, 'index'])->name('nosotros');
 
   // Carrito y checkout
-  Route::get('/carrito', [CartController::class, 'cart'])->name('carrito');
+  Route::get('/carrito', [CartController::class, 'index'])->name('carrito');
   Route::get('/registro-datos', [DataRegisterController::class, 'index'])->name('registrodatos');
   Route::post('/validar-registro', [DataRegisterController::class, 'validateRegisterForm'])->name('validateRegisterForm');
   Route::get('/confirmar-pedido', [CheckoutValidateController::class, 'index'])->name('confirmarpedido');

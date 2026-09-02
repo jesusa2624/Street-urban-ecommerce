@@ -1,7 +1,8 @@
 <script setup>
-import ShopLayout from '@/Layouts/Shop/ShopLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { ref, onMounted, computed } from 'vue';
+import ShopLayout from '@/Layouts/Shop/ShopLayout.vue';
+import TwoColsLayout from '@/Layouts/Shop/TwoColsLayout.vue';
 
 const compraData = ref(null);
 const carritoItems = ref([]);
@@ -61,60 +62,53 @@ const procesarPago = async () => {
       </div>
     </section>
 
-    <section class="px-4 md:px-8 lg:px-16 max-w-[1400px] mx-auto pb-24">
-      <div class="min-h-screen bg-black text-white p-8">
-        <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
+    <TwoColsLayout>
+      <template #left-content>
+        <h1 class="text-3xl font-black uppercase tracking-tighter border-b border-gray-800 pb-4">
+          Resumen de validación
+        </h1>
 
-          <div class="md:col-span-2 space-y-8">
-            <h1 class="text-3xl font-black uppercase tracking-tighter border-b border-gray-800 pb-4">
-              Resumen de validación
-            </h1>
-
-            <section class="bg-gray-900 p-6 rounded-lg border border-gray-800">
-              <h2 class="text-xl font-bold mb-4">Datos del comprador</h2>
-              <div v-if="compraData" class="space-y-2 text-gray-400 text-sm">
-                <p><strong>Nombre:</strong> {{ compraData.name }}</p>
-                <p><strong>Documento:</strong> {{ compraData.docNumber }} ({{ compraData.docType }})</p>
-                <p><strong>Correo:</strong> {{ compraData.email }}</p>
-                <p><strong>Teléfono:</strong> {{ compraData.phone }}</p>
-              </div>
-              <p v-else class="text-gray-500">No se encontraron datos de contacto.</p>
-            </section>
-
-            <section class="bg-gray-900 p-6 rounded-lg border border-gray-800">
-              <h2 class="text-xl font-bold mb-4">Productos en el carrito</h2>
-              <div v-if="carritoItems.length > 0" class="space-y-4">
-                <div v-for="item in carritoItems" :key="item.id"
-                  class="flex justify-between items-center border-b border-gray-800 pb-2">
-                  <div class="flex items-center gap-4">
-                    <span class="text-gray-400 text-sm">x{{ item.cantidad }}</span>
-                    <span>{{ item.name }}</span>
-                  </div>
-                  <span class="font-mono">S/&nbsp;{{ (item.price * item.cantidad).toFixed(2) }}</span>
-                </div>
-                <div class="flex justify-between pt-4 text-lg font-bold">
-                  <span>Total a pagar</span>
-                  <span>S/&nbsp;{{ totalCarrito.toFixed(2) }}</span>
-                </div>
-              </div>
-              <p v-else class="text-gray-500">El carrito está vacío.</p>
-            </section>
+        <section class="bg-gray-900 p-6 rounded-lg border border-gray-800">
+          <h2 class="text-xl font-bold mb-4">Datos del comprador</h2>
+          <div v-if="compraData" class="space-y-2 text-gray-400 text-sm">
+            <p><strong>Nombre:</strong> {{ compraData.name }}</p>
+            <p><strong>Documento:</strong> {{ compraData.docNumber }} ({{ compraData.docType }})</p>
+            <p><strong>Correo:</strong> {{ compraData.email }}</p>
+            <p><strong>Teléfono:</strong> {{ compraData.phone }}</p>
           </div>
+          <p v-else class="text-gray-500">No se encontraron datos de contacto.</p>
+        </section>
 
-          <div class="md:col-span-1">
-            <div class="sticky top-28 bg-gray-900 p-6 rounded-lg border border-gray-800">
-              <h2 class="text-xl font-bold mb-6">Confirmación</h2>
-              <button @click="procesarPago"
-                class="w-full bg-white text-black font-black py-4 uppercase hover:bg-gray-200 transition duration-300">
-                Confirmar y Pagar
-              </button>
-              <p class="text-xs text-gray-500 mt-4 text-center">
-                Al confirmar, aceptas nuestros términos y condiciones.
-              </p>
+        <section class="bg-gray-900 p-6 rounded-lg border border-gray-800">
+          <h2 class="text-xl font-bold mb-4">Productos en el carrito</h2>
+          <div v-if="carritoItems.length > 0" class="space-y-4">
+            <div v-for="item in carritoItems" :key="item.id"
+              class="flex justify-between items-center border-b border-gray-800 pb-2">
+              <div class="flex items-center gap-4">
+                <span class="text-gray-400 text-sm">x{{ item.cantidad }}</span>
+                <span>{{ item.name }}</span>
+              </div>
+              <span class="font-mono">S/&nbsp;{{ (item.price * item.cantidad).toFixed(2) }}</span>
+            </div>
+            <div class="flex justify-between pt-4 text-lg font-bold">
+              <span>Total a pagar</span>
+              <span>S/&nbsp;{{ totalCarrito.toFixed(2) }}</span>
             </div>
           </div>
-        </div>
-      </div>
-    </section>
+          <p v-else class="text-gray-500">El carrito está vacío.</p>
+        </section>
+      </template>
+
+      <template #right-sidebar>
+        <h2 class="text-xl font-bold mb-6">Confirmación</h2>
+        <button @click="procesarPago"
+          class="w-full py-4 font-black uppercase tracking-widest transition-all rounded-lg bg-street-orange-600 text-black hover:bg-street-orange-300">
+          Confirmar y Pagar
+        </button>
+        <p class="text-xs text-gray-500 mt-4 text-center">
+          Al confirmar, aceptas nuestros <Link :href="route('shop.terminos')">Términos y condiciones</Link> y nuestra <Link :href="route('shop.privacidad')">Política de privacidad</Link>.
+        </p>
+      </template>
+    </TwoColsLayout>
   </ShopLayout>
 </template>

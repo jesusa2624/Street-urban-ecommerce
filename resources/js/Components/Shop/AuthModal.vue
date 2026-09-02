@@ -271,7 +271,7 @@ const closeAndReset = () => {
             <input
               v-model="email"
               type="email"
-              placeholder="example@gmail.com"
+              placeholder="ejemplo@gmail.com"
               class="w-full bg-gradient-to-br from-gray-800 to-gray-700 border-2 border-gray-600 px-5 py-4 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-white focus:ring-2 focus:ring-white/20 transition duration-300 text-base font-medium"
             />
           </div>

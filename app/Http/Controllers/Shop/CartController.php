@@ -7,8 +7,8 @@ use Inertia\Inertia;
 
 class CartController extends Controller
 {
-  public function cart()
+  public function index()
   {
-    return Inertia::render('Shop/Carrito', []);
+    return Inertia::render('Shop/Compra/Carrito', []);
   }
 }

@@ -10,6 +10,6 @@ class CheckoutValidateController extends Controller
 {
   public function index()
   {
-    return Inertia::render('Shop/ConfirmarPedido', []);
+    return Inertia::render('Shop/Compra/ConfirmarPedido', []);
   }
 }
