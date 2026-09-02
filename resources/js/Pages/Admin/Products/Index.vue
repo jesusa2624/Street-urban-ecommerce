@@ -49,7 +49,7 @@
                     <td class="border border-gray-300 px-4 py-2">{{ product.id }}</td>
                     <td class="border border-gray-300 px-4 py-2">{{ product.name }}</td>
                     <td class="border border-gray-300 px-4 py-2">{{ product.sku }}</td>
-                    <td class="border border-gray-300 px-4 py-2">${{ product.price }}</td>
+                    <td class="border border-gray-300 px-4 py-2">S/ {{ product.price }}</td>
                     <td class="border border-gray-300 px-4 py-2">{{ product.stock }}</td>
                     <td class="border border-gray-300 px-4 py-2">{{ product.category?.name }}</td>
                     <td class="border border-gray-300 px-4 py-2">

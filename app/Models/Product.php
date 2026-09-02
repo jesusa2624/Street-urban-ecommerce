@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
-    protected $fillable = ['name', 'description', 'sku', 'price', 'cost', 'stock', 'category_id', 'image_url', 'active'];
+    protected $fillable = ['name', 'brand', 'description', 'sku', 'price', 'cost', 'stock', 'category_id', 'image_url', 'active'];
 
     protected $casts = [
         'price' => 'decimal:2',
@@ -22,5 +22,10 @@ class Product extends Model
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function variants()
+    {
+        return $this->hasMany(ProductVariant::class);
     }
 }

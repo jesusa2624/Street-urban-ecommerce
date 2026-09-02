@@ -3,36 +3,32 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
 
 class LoginController extends Controller
 {
     public function loginAction(Request $request)
     {
-        $validated = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string|min:8',
-        ]);
+        $email = $request->input('email');
+        $password = $request->input('password');
 
-        $customer = Customer::where('email', $validated['email'])->first();
-
-        if (!$customer || !Hash::check($validated['password'], $customer->password)) {
-            return Inertia::render('Auth/Login', [
-                'error' => 'Email o contraseña incorrectos',
-            ]);
+        $user = User::where('email', $email)->first();
+        if ($user && Hash::check($password, $user->password)) {
+            Auth::guard('web')->login($user, true);
+            return redirect('/admin/dashboard');
         }
 
-        // Login del customer usando guard web directo
-        Auth::login($customer);
+        $customer = Customer::where('email', $email)->first();
+        if ($customer && Hash::check($password, $customer->password)) {
+            Auth::guard('customer')->login($customer, true);
+            return redirect('/');
+        }
 
-        // Redirigir al home con props correctas
-        return Inertia::render('Shop/Home', [
-            'products' => $this->getProducts()
-        ]);
+        return redirect('/')->with('error', 'Credenciales inválidas');
     }
 
     private function getProducts()

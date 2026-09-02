@@ -23,6 +23,7 @@ const showPassword = ref(false);
 const isLoading = ref(false);
 const responseError = ref('');
 const responseSuccess = ref('');
+const showSplash = ref(false);
 
 const handleActivate = async () => {
   if (!name.value || !password.value || !passwordConfirm.value) {
@@ -47,7 +48,10 @@ const handleActivate = async () => {
   try {
     const response = await fetch('/api/auth/activate-account', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+      },
       body: JSON.stringify({
         token: props.token,
         email: props.email,
@@ -63,22 +67,39 @@ const handleActivate = async () => {
 
     if (!response.ok) {
       responseError.value = data.message || 'Error al activar la cuenta';
+      isLoading.value = false;
       return;
     }
 
     responseSuccess.value = data.message;
+    showSplash.value = true;
     setTimeout(() => {
-      location.href = '/';
-    }, 2000);
+      location.href = data.redirect || '/';
+    }, 1800);
   } catch (e) {
     responseError.value = 'Error de conexión. Intenta de nuevo.';
-  } finally {
     isLoading.value = false;
   }
 };
 </script>
 
 <template>
+  <!-- Splash de bienvenida tras activar la cuenta -->
+  <Transition name="fade">
+    <div
+      v-if="showSplash"
+      class="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center px-4"
+    >
+      <div class="w-16 h-16 rounded-full bg-green-500/20 border-2 border-green-500 flex items-center justify-center mb-6">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8 text-green-500">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      <h2 class="text-3xl font-black text-white text-center mb-2">¡BIENVENIDO!</h2>
+      <p class="text-gray-400 text-sm text-center">Iniciando sesión, un momento...</p>
+    </div>
+  </Transition>
+
   <div class="min-h-screen flex items-center justify-center px-4 py-12">
     <div class="max-w-md w-full">
       <!-- Header -->
@@ -199,3 +220,12 @@ const handleActivate = async () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+</style>

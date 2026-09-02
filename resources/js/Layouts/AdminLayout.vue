@@ -1,99 +1,112 @@
 <template>
-  <div class="flex h-screen bg-gradient-to-br from-[#0a0a0a] via-[#0f0f0f] to-[#1a1a1a] text-white">
+  <div class="flex h-screen bg-[#f4f5f7] text-gray-900">
     <!-- Sidebar -->
-    <aside class="w-72 bg-gradient-to-b from-[#111111] via-[#0f0f0f] to-[#0a0a0a] border-r border-white/10 shadow-2xl flex flex-col">
+    <aside class="w-64 bg-white border-r border-gray-200 flex flex-col">
       <!-- Logo Section -->
-      <div class="p-8 border-b border-white/10">
-        <div class="space-y-3">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center font-bold text-white shadow-lg">
-              S
-            </div>
-            <div>
-              <h1 class="text-2xl font-black tracking-tight">Street</h1>
-              <p class="text-xs text-gray-500 font-light">Urban Admin</p>
-            </div>
+      <div class="p-6 border-b border-gray-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-[#ff8c42] rounded-lg flex items-center justify-center font-black text-white shadow-sm">
+            S
+          </div>
+          <div>
+            <h1 class="text-lg font-black tracking-tight leading-none">Street Urban</h1>
           </div>
         </div>
       </div>
 
+      <!-- Storage (decorative) -->
+      <div class="px-6 pt-5">
+        <div class="flex items-center justify-between text-xs text-gray-500 mb-1.5">
+          <span>Almacenamiento</span>
+          <span>45 de 100 GB</span>
+        </div>
+        <div class="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+          <div class="h-full bg-[#ff8c42] rounded-full" style="width: 45%"></div>
+        </div>
+      </div>
+
       <!-- Navigation -->
-      <nav class="flex-1 px-4 py-6 space-y-2">
-        <Link
-          :href="route('admin.dashboard')"
-          class="group flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 text-gray-300 hover:text-white"
-          :class="route().current('admin.dashboard')
-            ? 'bg-gradient-to-r from-blue-600/30 to-cyan-600/20 text-white border border-blue-500/30'
-            : 'hover:bg-white/5 border border-transparent'"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9M9 5l3-3m0 0l3 3m-3-3v10" />
-          </svg>
-          <span class="font-semibold">Dashboard</span>
-        </Link>
-
-        <Link
-          :href="route('admin.customers.index')"
-          class="group flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 text-gray-300 hover:text-white"
-          :class="route().current('admin.customers.*')
-            ? 'bg-gradient-to-r from-blue-600/30 to-cyan-600/20 text-white border border-blue-500/30'
-            : 'hover:bg-white/5 border border-transparent'"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 12H9m4 5H9m6 0h.01M12 12a8 8 0 100-16 8 8 0 000 16z" />
-          </svg>
-          <span class="font-semibold">Clientes</span>
-        </Link>
-
-        <Link
-          :href="route('admin.products.index')"
-          class="group flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 text-gray-300 hover:text-white"
-          :class="route().current('admin.products.*')
-            ? 'bg-gradient-to-r from-blue-600/30 to-cyan-600/20 text-white border border-blue-500/30'
-            : 'hover:bg-white/5 border border-transparent'"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m0 0l8 4m-8-4v10l8 4m0-10l8 4m0 0v10l-8 4" />
-          </svg>
-          <span class="font-semibold">Productos</span>
-        </Link>
+      <nav class="flex-1 px-4 py-6 space-y-5 overflow-y-auto">
+        <div v-for="group in menuGroups" :key="group.label" class="space-y-1">
+          <p
+            v-if="!(group.items.length === 1 && group.items[0].name === group.label)"
+            class="px-3 text-[11px] font-bold text-gray-400 uppercase tracking-widest"
+          >
+            {{ group.label }}
+          </p>
+          <component
+            :is="item.href ? Link : 'div'"
+            v-for="item in group.items"
+            :key="item.name"
+            :href="item.href"
+            class="group flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-sm"
+            :class="[
+              item.href
+                ? (route().current(item.active)
+                    ? 'bg-[#ff8c42]/10 text-[#ff8c42] font-semibold'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium')
+                : 'text-gray-300 cursor-not-allowed font-medium',
+            ]"
+          >
+            <i :class="['fa-solid', item.icon, 'w-4 text-center text-[13px]']"></i>
+            <span>{{ item.name }}</span>
+            <span v-if="!item.href" class="ml-auto text-[10px] bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded-full">Pronto</span>
+          </component>
+        </div>
       </nav>
 
-      <!-- Bottom Section -->
-      <div class="px-4 py-6 border-t border-white/10 space-y-2">
-        <Link
-          :href="route('shop.home')"
-          class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all duration-300 text-gray-400 hover:text-white"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          <span class="text-sm font-medium">Ir a Tienda</span>
-        </Link>
-
+      <!-- Bottom Section: user + logout -->
+      <div class="px-4 py-4 border-t border-gray-100">
+        <div class="flex items-center gap-3 px-3 py-2 mb-1">
+          <div class="w-9 h-9 rounded-full bg-[#ff8c42] flex items-center justify-center text-white font-bold text-sm">
+            {{ userInitial }}
+          </div>
+          <div class="min-w-0">
+            <p class="text-sm font-semibold text-gray-800 truncate">{{ userName }}</p>
+            <p class="text-xs text-gray-400 truncate">{{ userRoleLabel }}</p>
+          </div>
+        </div>
         <Link
           :href="route('logout')"
           method="post"
           as="button"
-          class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-red-400 hover:text-red-300 hover:bg-red-600/10 border border-red-900/30 hover:border-red-700/50"
+          class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-red-500 hover:bg-red-50 text-sm font-medium"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          <span class="text-sm font-medium">Cerrar Sesión</span>
+          <i class="fa-solid fa-right-from-bracket w-4 text-center text-[13px]"></i>
+          <span>Cerrar Sesión</span>
         </Link>
       </div>
     </aside>
 
     <!-- Main Content -->
     <div class="flex-1 overflow-auto flex flex-col">
-      <!-- Header -->
-      <header class="bg-gradient-to-r from-[#111111] via-[#0f0f0f] to-[#1a1a1a] border-b border-white/10 backdrop-blur-sm">
-        <div class="px-8 py-6">
-          <h2 class="text-4xl font-black tracking-tight text-white">
-            <slot name="header">Panel Administrativo</slot>
-          </h2>
-          <p class="text-gray-400 text-sm mt-2">Controla tu ecommerce desde aquí</p>
+      <!-- Top bar -->
+      <header class="bg-white border-b border-gray-200">
+        <div class="px-8 py-4 flex items-center justify-between">
+          <div>
+            <p class="text-xs text-gray-400">
+              Inicio <i class="fa-solid fa-chevron-right text-[9px] mx-1"></i> <slot name="breadcrumb">Dashboard</slot>
+            </p>
+            <h2 class="text-2xl font-black tracking-tight text-gray-900 mt-0.5">
+              <slot name="header">Panel Administrativo</slot>
+            </h2>
+          </div>
+
+          <div class="flex items-center gap-4">
+            <div class="flex items-center bg-gray-100 rounded-lg p-1 text-xs font-semibold text-gray-500">
+              <button class="px-3 py-1.5 rounded-md bg-white text-gray-900 shadow-sm">Hoy</button>
+              <button class="px-3 py-1.5 rounded-md hover:text-gray-700">7D</button>
+              <button class="px-3 py-1.5 rounded-md hover:text-gray-700">2S</button>
+              <button class="px-3 py-1.5 rounded-md hover:text-gray-700">1M</button>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <div class="w-9 h-9 rounded-full bg-[#ff8c42] flex items-center justify-center text-white font-bold text-sm">
+                {{ userInitial }}
+              </div>
+              <span class="text-sm font-semibold text-gray-800 hidden sm:block">{{ userName }}</span>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -106,7 +119,54 @@
 </template>
 
 <script setup>
-import { Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
+
+const page = usePage();
+
+const userName = computed(() => page.props.auth?.user?.name ?? 'Admin');
+const userInitial = computed(() => userName.value.charAt(0).toUpperCase());
+const userRoleLabel = computed(() => {
+  const role = page.props.auth?.user?.role;
+  return role === 'admin' ? 'Administrador' : role === 'vendedor' ? 'Vendedor' : 'Staff';
+});
+
+const menuGroups = computed(() => [
+  {
+    label: 'General',
+    items: [
+      { name: 'Dashboard', href: route('admin.dashboard'), active: 'admin.dashboard', icon: 'fa-gauge' },
+    ],
+  },
+  {
+    label: 'Inventario',
+    items: [
+      { name: 'Catálogo', href: route('admin.catalogo.index'), active: 'admin.catalogo.*', icon: 'fa-book' },
+      { name: 'Compras', href: route('admin.purchases.index'), active: 'admin.purchases.*', icon: 'fa-cart-shopping' },
+      { name: 'Órdenes', href: null, active: null, icon: 'fa-receipt' },
+    ],
+  },
+  {
+    label: 'Ventas',
+    items: [
+      { name: 'Historial de Ventas', href: null, active: null, icon: 'fa-arrow-trend-up' },
+      { name: 'Reportes de Ventas', href: null, active: null, icon: 'fa-chart-pie' },
+    ],
+  },
+  {
+    label: 'Relaciones',
+    items: [
+      { name: 'Clientes', href: route('admin.customers.index'), active: 'admin.customers.*', icon: 'fa-people-group' },
+    ],
+  },
+  {
+    label: 'Cuenta',
+    items: [
+      { name: 'Configuración', href: null, active: null, icon: 'fa-sliders' },
+      { name: 'Perfil', href: null, active: null, icon: 'fa-circle-user' },
+    ],
+  },
+]);
 </script>
 
 <style scoped>
@@ -116,15 +176,15 @@ import { Link } from '@inertiajs/vue3';
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.2);
 }
 </style>

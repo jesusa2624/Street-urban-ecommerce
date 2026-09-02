@@ -68,18 +68,13 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', 'App\Models\Customer'),
+            'model' => env('AUTH_MODEL', 'App\Models\User'),
         ],
 
         'customers' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_CUSTOMER_MODEL', 'App\Models\Customer'),
         ],
-
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
     ],
 
     /*

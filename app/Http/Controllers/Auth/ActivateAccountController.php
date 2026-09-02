@@ -90,6 +90,14 @@ class ActivateAccountController extends Controller
                 ], 400);
             }
 
+            // Un email de staff no puede registrarse como cliente
+            if (\App\Models\User::where('email', $validated['email'])->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'El email ya está registrado',
+                ], 400);
+            }
+
             // Verificar si el cliente ya existe
             $customer = Customer::where('email', $validated['email'])->first();
 
@@ -122,8 +130,8 @@ class ActivateAccountController extends Controller
                 VerificationToken::markAsVerified($validated['email'], $validated['token']);
             }
 
-            // Auto-login del cliente usando guard web directo
-            Auth::login($customer);
+            // Auto-login del cliente usando el guard de customer
+            Auth::guard('customer')->login($customer);
 
             return response()->json([
                 'success' => true,

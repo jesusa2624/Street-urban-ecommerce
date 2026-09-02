@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\VerifyEmailMail;
 use App\Models\VerificationToken;
 use App\Models\Customer;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -20,6 +21,15 @@ class VerificationController extends Controller
         ]);
 
         $email = $validated['email'];
+
+        // Email de staff: tratar como ya registrado (debe ir a login, no a registro)
+        if (User::where('email', $email)->exists()) {
+            return response()->json([
+                'status' => 'exists',
+                'message' => 'Email ya registrado',
+            ]);
+        }
+
         $customer = Customer::where('email', $email)->first();
 
         // Email no existe

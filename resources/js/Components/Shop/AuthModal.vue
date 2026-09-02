@@ -38,7 +38,10 @@ const handleEmailSubmit = async () => {
   try {
     const response = await fetch('/api/auth/check-email', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
+      },
       body: JSON.stringify({ email: email.value })
     });
 
@@ -71,7 +74,10 @@ const handleConfirmSend = async () => {
   try {
     const response = await fetch('/api/auth/send-verification-email', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
+      },
       body: JSON.stringify({
         email: email.value,
         acceptNewsletter: acceptNewsletter.value,
@@ -104,7 +110,7 @@ const goBackToEmail = () => {
 };
 
 // Login
-const handleLogin = async () => {
+const handleLogin = () => {
   if (!email.value || !password.value) {
     error.value = 'Por favor completa email y contraseña';
     return;
@@ -113,33 +119,27 @@ const handleLogin = async () => {
   isLoading.value = true;
   error.value = '';
 
-  try {
-    const response = await fetch('/auth/login-action', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: JSON.stringify({
-        email: email.value,
-        password: password.value,
-      })
-    });
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '/auth/login-action';
+  form.style.display = 'none';
 
-    if (!response.ok) {
-      const data = await response.json();
-      error.value = data.message || 'Email o contraseña incorrectos';
-      return;
-    }
+  const fields = {
+    email: email.value,
+    password: password.value,
+    _token: document.querySelector('meta[name="csrf-token"]')?.content || '',
+  };
 
-    // Login exitoso - recargar página
-    window.location.href = '/';
-  } catch (e) {
-    error.value = 'Error de conexión. Intenta de nuevo.';
-    console.error('Error:', e);
-  } finally {
-    isLoading.value = false;
+  for (const [name, value] of Object.entries(fields)) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = value;
+    form.appendChild(input);
   }
+
+  document.body.appendChild(form);
+  form.submit();
 };
 
 // Cambiar tab
