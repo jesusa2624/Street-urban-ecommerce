@@ -1,7 +1,9 @@
 <script setup>
-import { ref, computed } from 'vue';
-import { Link } from '@inertiajs/vue3';
-import { add } from '@/cart';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { router, usePage } from '@inertiajs/vue3';
+import { isInWishlist, toggle as toggleWishlistItem } from '@/wishlist';
+
+const page = usePage();
 
 const props = defineProps({
   product: {
@@ -14,8 +16,36 @@ const imageLoaded = ref(false);
 const imageError = ref(false);
 const isFavorite = ref(false);
 
-const toggleFavorite = () => {
-  isFavorite.value = !isFavorite.value;
+const isLoggedIn = computed(() => !!page.props.auth?.user);
+
+// La tarjeta no tiene un color "seleccionado" explícito (solo el hover
+// temporal sobre los puntitos), así que el corazón favorita el primer color
+// del modelo, igual que la imagen que se muestra por defecto.
+const favoriteColorId = computed(() => props.product.colores?.[0]?.id ?? null);
+
+const syncFavorite = async () => {
+  isFavorite.value = isLoggedIn.value && !!favoriteColorId.value && await isInWishlist(favoriteColorId.value);
+};
+
+onMounted(() => {
+  syncFavorite();
+  window.addEventListener('wishlist-updated', syncFavorite);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('wishlist-updated', syncFavorite);
+});
+
+const toggleFavorite = async () => {
+  if (!isLoggedIn.value) {
+    window.dispatchEvent(new Event('open-auth-modal'));
+    return;
+  }
+
+  if (!favoriteColorId.value) return;
+
+  const added = await toggleWishlistItem(favoriteColorId.value);
+  if (added !== null) isFavorite.value = added;
 };
 
 const handleImageLoad = () => {
@@ -45,33 +75,42 @@ const discountPercentage = computed(() => {
   return null;
 });
 
+const hoveredColor = ref(null);
+
 const productImage = computed(() => {
+  if (hoveredColor.value?.imagen) {
+    return hoveredColor.value.imagen;
+  }
   if (imageError.value) {
     return null;
   }
   return props.product.image;
 });
 
-// Añade productos al carrito y actualiza el contador
-const addToCart = () => {
-  add(props.product);
-  window.dispatchEvent(new Event('cart-updated'));
-  console.log('Producto agregado');
+// El precio puede variar por color (ej. una edición limitada), así que al pasar el
+// mouse por un color se muestra su precio real en vez del precio "desde" genérico.
+const displayPrice = computed(() => hoveredColor.value?.precio ?? props.product.price);
+
+const irADetalle = () => {
+  router.visit(route('shop.producto', props.product.id));
 };
 
 </script>
 
 <template>
-  <div class="group relative flex flex-col overflow-hidden bg-[#1a1a1a] border border-gray-800 rounded-lg transition-all duration-300 hover:shadow-lg hover:border-gray-700">
+  <div
+    @click="irADetalle"
+    class="group relative flex flex-col overflow-hidden bg-[#1a1a1a] border border-gray-800 rounded-lg transition-all duration-300 hover:shadow-lg hover:border-gray-700 cursor-pointer"
+  >
 
     <!-- Contenedor de la Imagen (Área Interactiva Superior) -->
     <div class="relative aspect-square overflow-hidden bg-[#0f0f0f] w-full">
 
       <!-- Skeleton Loader mientras carga -->
-      <div v-if="!imageLoaded && !imageError" class="absolute inset-0 bg-gray-700 animate-pulse"></div>
+      <div v-if="productImage && !imageLoaded && !imageError" class="absolute inset-0 bg-gray-700 animate-pulse"></div>
 
-      <!-- Placeholder cuando hay error en la imagen -->
-      <div v-if="imageError" class="absolute inset-0 bg-gray-800 flex flex-col items-center justify-center">
+      <!-- Placeholder cuando hay error o el producto aún no tiene foto registrada -->
+      <div v-if="imageError || !productImage" class="absolute inset-0 bg-gray-800 flex flex-col items-center justify-center">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" class="w-12 h-12 text-gray-400 mb-2">
           <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75l5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-15-4.35l5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0z" />
         </svg>
@@ -135,14 +174,44 @@ const addToCart = () => {
 
       <!-- Nombre y Enlace al Producto -->
       <div>
-        <h3 class="text-sm font-semibold text-white">
-          <Link :href="`/shop/products/${product.id}`" class="hover:text-gray-300 transition-colors">
-            {{ product.name }}
-          </Link>
+        <h3 class="text-sm font-semibold text-white group-hover:text-gray-300 transition-colors">
+          {{ product.name }}
         </h3>
         <p class="text-xs text-gray-400 mt-1 line-clamp-2">
           {{ product.description }}
         </p>
+      </div>
+
+      <!-- Colores disponibles: puntitos con tallas/stock al pasar el mouse -->
+      <div v-if="product.colores?.length" class="mt-3 flex items-center gap-1.5 flex-wrap">
+        <div
+          v-for="color in product.colores"
+          :key="color.nombre"
+          class="relative"
+          @mouseenter="hoveredColor = color"
+          @mouseleave="hoveredColor = null"
+        >
+          <button
+            type="button"
+            @click.stop="irADetalle"
+            class="w-5 h-5 rounded-full border-2 border-gray-600 hover:border-white transition-colors"
+            :style="{ backgroundColor: color.hex || '#6b7280' }"
+            :aria-label="color.nombre"
+          ></button>
+
+          <div
+            v-if="hoveredColor === color"
+            class="absolute bottom-full left-0 mb-2 w-max max-w-[160px] bg-black border border-gray-700 rounded-lg px-3 py-2 shadow-xl z-30 pointer-events-none"
+          >
+            <p class="text-xs font-bold text-white mb-1">{{ color.nombre }} · S/ {{ color.precio.toFixed(2) }}</p>
+            <p class="text-[11px] text-gray-300">
+              Tallas: {{ color.tallas.map(t => t.talla).join(', ') }}
+            </p>
+            <p class="text-[11px] text-gray-400">
+              Stock: {{ color.tallas.reduce((sum, t) => sum + t.stock, 0) }} unidades
+            </p>
+          </div>
+        </div>
       </div>
 
       <!-- Rating y Vendidos -->
@@ -165,18 +234,21 @@ const addToCart = () => {
         <div class="flex flex-col">
           <div class="flex items-baseline gap-2">
             <span class="text-lg font-bold text-white">
-              S/ {{ product.price }}
+              S/ {{ displayPrice.toFixed(2) }}
             </span>
             <span v-if="hasSale" class="text-xs text-gray-500 line-through">
               S/ {{ originalPrice }}
             </span>
           </div>
         </div>
-        <button @click="addToCart" :disabled="!product.stock" class="p-2 bg-white text-black rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+        <span
+          :class="['p-2 bg-white text-black rounded-lg pointer-events-none transition-colors', !product.stock ? 'opacity-50' : 'group-hover:bg-gray-200']"
+          title="Elegir color y talla"
+        >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-        </button>
+        </span>
       </div>
     </div>
 

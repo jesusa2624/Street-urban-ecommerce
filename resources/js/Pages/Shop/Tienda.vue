@@ -23,13 +23,16 @@ onMounted(() => {
   currentPage.value = 1;
 });
 
-const categories = [
-  { name: 'Todos', count: props.products.length },
-  { name: 'Ropa', count: props.products.filter(p => p.category === 'Ropa').length },
-  { name: 'Calzados', count: props.products.filter(p => p.category === 'Calzados').length },
-  { name: 'Accesorios', count: props.products.filter(p => p.category === 'Accesorios').length },
-  { name: 'Sombrería', count: props.products.filter(p => p.category === 'Sombrería').length },
-];
+const categories = computed(() => {
+  const nombres = [...new Set(props.products.map(p => p.category))].sort();
+  return [
+    { name: 'Todos', count: props.products.length },
+    ...nombres.map(nombre => ({
+      name: nombre,
+      count: props.products.filter(p => p.category === nombre).length,
+    })),
+  ];
+});
 
 const availableBrands = computed(() => {
   let filtered = props.products;

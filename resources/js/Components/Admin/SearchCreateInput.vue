@@ -12,13 +12,13 @@ const model = defineModel({ type: String, default: '' });
 const showDropdown = ref(false);
 
 const opcionesFiltradas = computed(() => {
-  const q = model.value.trim().toLowerCase();
+  const q = (model.value || '').trim().toLowerCase();
   if (!q) return props.options;
   return props.options.filter(o => o.toLowerCase().includes(q));
 });
 
 const esNuevo = computed(() => {
-  const q = model.value.trim();
+  const q = (model.value || '').trim();
   return q.length > 0 && !props.options.some(o => o.toLowerCase() === q.toLowerCase());
 });
 

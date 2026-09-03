@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductColor;
 use App\Models\ProductVariant;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
@@ -18,18 +20,18 @@ class PurchaseController extends Controller
 {
     public function index()
     {
-        $variants = ProductVariant::with('product.category')
+        $variants = ProductVariant::with(['product.category', 'product.brand', 'productColor'])
             ->orderByDesc('updated_at')
             ->get()
             ->map(fn ($variant) => [
                 'id' => $variant->id,
                 'productId' => $variant->product_id,
                 'producto' => $variant->product->name,
-                'marca' => $variant->product->brand,
+                'marca' => $variant->product->brand->name ?? '-',
                 'categoria' => $variant->product->category->name ?? '-',
                 'talla' => $variant->size,
-                'color' => $variant->color,
-                'colorHex' => $variant->color_hex,
+                'color' => $variant->productColor->name ?? '-',
+                'colorHex' => $variant->productColor->hex ?? null,
                 'stock' => $variant->stock,
                 'precioCompra' => (float) $variant->cost,
                 'precioVenta' => (float) $variant->product->price,
@@ -41,16 +43,10 @@ class PurchaseController extends Controller
             ->get()
             ->sum(fn ($item) => $item->quantity_remaining * $item->unit_cost);
 
-        $marcasPorCategoria = Product::with('category')
-            ->whereNotNull('brand')->where('brand', '!=', '')
-            ->get()
-            ->groupBy(fn ($p) => $p->category->name ?? 'Sin categoría')
-            ->map(fn ($group) => $group->pluck('brand')->unique()->sort()->values());
-
         return Inertia::render('Admin/Compras/Index', [
             'variants' => $variants,
             'categorias' => Category::orderBy('name')->pluck('name'),
-            'marcasPorCategoria' => $marcasPorCategoria,
+            'marcas' => Brand::orderBy('name')->pluck('name'),
             'stats' => [
                 'totalProductos' => Product::count(),
                 'totalVariantes' => $variants->count(),
@@ -62,7 +58,7 @@ class PurchaseController extends Controller
 
     public function historial()
     {
-        $compras = Purchase::with(['items.variant.product', 'user'])
+        $compras = Purchase::with(['items.variant.product.brand', 'items.variant.productColor', 'user'])
             ->orderByDesc('purchase_date')
             ->orderByDesc('id')
             ->get()
@@ -78,10 +74,10 @@ class PurchaseController extends Controller
                 'totalPrendas' => $p->items->sum('quantity'),
                 'items' => $p->items->map(fn ($item) => [
                     'producto' => $item->variant->product->name,
-                    'marca' => $item->variant->product->brand,
+                    'marca' => $item->variant->product->brand->name ?? '-',
                     'talla' => $item->variant->size,
-                    'color' => $item->variant->color,
-                    'colorHex' => $item->variant->color_hex,
+                    'color' => $item->variant->productColor->name ?? '-',
+                    'colorHex' => $item->variant->productColor->hex ?? null,
                     'cantidad' => $item->quantity,
                     'costoUnitario' => (float) $item->unit_cost,
                     'subtotal' => (float) $item->subtotal,
@@ -105,7 +101,7 @@ class PurchaseController extends Controller
         $proveedor = $request->query('proveedor');
         $categoria = $request->query('categoria');
 
-        $itemsQuery = PurchaseItem::with(['purchase', 'variant.product.category'])
+        $itemsQuery = PurchaseItem::with(['purchase', 'variant.product.category', 'variant.product.brand'])
             ->whereHas('purchase', function ($q) use ($desde, $hasta, $proveedor) {
                 if ($desde) $q->whereDate('purchase_date', '>=', $desde);
                 if ($hasta) $q->whereDate('purchase_date', '<=', $hasta);
@@ -139,7 +135,7 @@ class PurchaseController extends Controller
             ])
             ->sortByDesc('total')->values();
 
-        $porMarca = $items->groupBy(fn ($i) => $i->variant->product->brand ?: 'Sin marca')
+        $porMarca = $items->groupBy(fn ($i) => $i->variant->product->brand->name ?? 'Sin marca')
             ->map(fn ($group, $nombre) => [
                 'label' => $nombre,
                 'total' => $group->sum('subtotal'),
@@ -155,7 +151,7 @@ class PurchaseController extends Controller
 
                 return [
                     'label' => $nombre,
-                    'marca' => $group->first()->variant->product->brand,
+                    'marca' => $group->first()->variant->product->brand->name ?? '-',
                     'categoria' => $group->first()->variant->product->category->name ?? 'Sin categoría',
                     'unidades' => $unidades,
                     'numeroCompras' => $group->pluck('purchase_id')->unique()->count(),
@@ -212,12 +208,12 @@ class PurchaseController extends Controller
             return response()->json([]);
         }
 
-        $query = Product::with('category');
+        $query = Product::with(['category', 'brand']);
 
         if ($q) {
             $query->where(function ($qq) use ($q) {
                 $qq->where('name', 'like', "%{$q}%")
-                    ->orWhere('brand', 'like', "%{$q}%");
+                    ->orWhereHas('brand', fn ($bq) => $bq->where('name', 'like', "%{$q}%"));
             });
         }
 
@@ -226,7 +222,7 @@ class PurchaseController extends Controller
         }
 
         if ($marca) {
-            $query->where('brand', $marca);
+            $query->whereHas('brand', fn ($qq) => $qq->where('name', $marca));
         }
 
         $products = $query->orderBy('name')
@@ -235,7 +231,7 @@ class PurchaseController extends Controller
             ->map(fn ($p) => [
                 'id' => $p->id,
                 'nombre' => $p->name,
-                'marca' => $p->brand,
+                'marca' => $p->brand->name ?? null,
                 'categoria' => $p->category->name ?? null,
                 'stock' => $p->stock,
             ]);
@@ -276,6 +272,9 @@ class PurchaseController extends Controller
             ]);
 
             foreach ($validated['prendas'] as $item) {
+                // La marca es independiente de la categoría: se busca globalmente por nombre normalizado.
+                $brand = Brand::whereRaw('LOWER(TRIM(name)) = ?', [mb_strtolower(trim($item['marca']))])->first();
+
                 // Si vino de una selección explícita del buscador, reutiliza ese producto tal cual.
                 $product = !empty($item['productId'])
                     ? Product::find($item['productId'])
@@ -283,14 +282,21 @@ class PurchaseController extends Controller
 
                 // Red de seguridad: si escribieron el nombre a mano, buscar por coincidencia
                 // normalizada (sin importar mayúsculas/espacios) antes de crear uno nuevo.
-                if (!$product) {
+                if (!$product && $brand) {
                     $product = Product::whereRaw('LOWER(TRIM(name)) = ?', [mb_strtolower(trim($item['nombre']))])
-                        ->whereRaw('LOWER(TRIM(brand)) = ?', [mb_strtolower(trim($item['marca']))])
+                        ->where('brand_id', $brand->id)
                         ->first();
                 }
 
                 if (!$product) {
-                    // Solo se crea/usa la categoría cuando realmente se está creando un producto nuevo.
+                    // Solo se crean/usan categoría y marca cuando realmente se está creando un producto nuevo.
+                    if (!$brand) {
+                        $brand = Brand::firstOrCreate(
+                            ['slug' => Str::slug($item['marca'])],
+                            ['name' => trim($item['marca']), 'active' => true]
+                        );
+                    }
+
                     $category = Category::firstOrCreate(
                         ['slug' => Str::slug($item['categoria'])],
                         ['name' => $item['categoria'], 'active' => true]
@@ -298,7 +304,7 @@ class PurchaseController extends Controller
 
                     $product = Product::create([
                         'name' => trim($item['nombre']),
-                        'brand' => trim($item['marca']),
+                        'brand_id' => $brand->id,
                         'category_id' => $category->id,
                         'description' => '',
                         'sku' => strtoupper(Str::slug($item['nombre'] . '-' . $item['marca'])) . '-' . Str::random(4),
@@ -309,11 +315,27 @@ class PurchaseController extends Controller
                         'active' => true,
                     ]);
                 } else {
-                    // El producto ya existe: su categoría original no se toca aunque hayan
-                    // escrito una distinta por error; solo se actualizan precio y costo.
+                    // El producto ya existe: su categoría/marca originales no se tocan aunque hayan
+                    // escrito algo distinto por error; solo se actualizan precio y costo.
                     $product->update([
                         'price' => $item['precioVenta'],
                         'cost' => $item['precioCompra'],
+                    ]);
+                }
+
+                // El color es propio de cada Modelo (no se comparte entre productos). Se busca por
+                // nombre normalizado dentro del producto; si no existe se crea sin foto todavía —
+                // la foto se agrega después desde Catálogo.
+                $productColor = ProductColor::where('product_id', $product->id)
+                    ->whereRaw('LOWER(TRIM(name)) = ?', [mb_strtolower(trim($item['colorNombre']))])
+                    ->first();
+
+                if (!$productColor) {
+                    $productColor = ProductColor::create([
+                        'product_id' => $product->id,
+                        'name' => $item['colorNombre'],
+                        'hex' => $item['color'] ?? null,
+                        'image_url' => null,
                     ]);
                 }
 
@@ -321,19 +343,21 @@ class PurchaseController extends Controller
                     [
                         'product_id' => $product->id,
                         'size' => $item['talla'],
-                        'color' => $item['colorNombre'],
+                        'product_color_id' => $productColor->id,
                     ],
                     [
-                        'color_hex' => $item['color'] ?? null,
                         'sku' => strtoupper($product->sku . '-' . $item['talla'] . '-' . $item['colorNombre']) . '-' . Str::random(3),
                         'stock' => 0,
                         'cost' => $item['precioCompra'],
+                        'price' => $item['precioVenta'],
                     ]
                 );
 
-                // El "costo" del variant es solo referencial (el del lote más reciente).
-                // El valor real de inventario se calcula por lote en index().
-                $variant->update(['cost' => $item['precioCompra']]);
+                // El costo y el precio de venta son propios de cada talla/color — dos variantes del
+                // mismo modelo pueden venderse a precios distintos (ej. un color en edición limitada).
+                // El "costo" es solo referencial (el del lote más reciente); el valor real de
+                // inventario se calcula por lote en index().
+                $variant->update(['cost' => $item['precioCompra'], 'price' => $item['precioVenta']]);
                 $variant->increment('stock', $item['cantidad']);
                 $product->increment('stock', $item['cantidad']);
 

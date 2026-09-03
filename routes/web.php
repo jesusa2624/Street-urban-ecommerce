@@ -7,6 +7,7 @@ use App\Http\Controllers\Shop\DataRegisterController;
 use App\Http\Controllers\Shop\CheckoutValidateController;
 use App\Http\Controllers\Shop\ContactController;
 use App\Http\Controllers\Shop\AboutController;
+use App\Http\Controllers\Shop\WishlistController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -37,6 +38,11 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 
     Route::get('/catalogo', [CatalogoController::class, 'index'])->name('admin.catalogo.index');
     Route::post('/catalogo', [CatalogoController::class, 'store'])->name('admin.catalogo.store');
+    Route::get('/catalogo/{producto}/variantes', [CatalogoController::class, 'variantes'])->name('admin.catalogo.variantes');
+    Route::get('/catalogo/{producto}/colores', [CatalogoController::class, 'colores'])->name('admin.catalogo.colores.index');
+    Route::post('/catalogo/{producto}/colores', [CatalogoController::class, 'storeColor'])->name('admin.catalogo.colores.store');
+    Route::post('/catalogo/colores/{color}', [CatalogoController::class, 'updateColor'])->name('admin.catalogo.colores.update');
+    Route::delete('/catalogo/colores/{color}', [CatalogoController::class, 'destroyColor'])->name('admin.catalogo.colores.destroy');
     Route::patch('/catalogo/{producto}', [CatalogoController::class, 'update'])->name('admin.catalogo.update');
     Route::delete('/catalogo/{producto}', [CatalogoController::class, 'destroy'])->name('admin.catalogo.destroy');
 });
@@ -46,11 +52,15 @@ Route::name('shop.')->group(function () {
   // Páginas principales
   Route::get('/', [ProductController::class, 'index'])->name('home');
   Route::get('/tienda', [ProductController::class, 'shop'])->name('tienda');
+  Route::get('/products/{producto}', [ProductController::class, 'show'])->name('producto');
   Route::get('/contacto', [ContactController::class, 'index'])->name('contacto');
   Route::get('/nosotros', [AboutController::class, 'index'])->name('nosotros');
 
   // Carrito y checkout
   Route::get('/carrito', [CartController::class, 'index'])->name('carrito');
+  Route::get('/wishlist', [WishlistController::class, 'index'])->middleware('auth:web,customer')->name('wishlist');
+  Route::get('/api/wishlist', [WishlistController::class, 'ids'])->name('wishlist.ids');
+  Route::post('/api/wishlist/{color}/toggle', [WishlistController::class, 'toggle'])->middleware('auth:web,customer')->name('wishlist.toggle');
   Route::get('/registro-datos', [DataRegisterController::class, 'index'])->name('registrodatos');
   Route::post('/validar-registro', [DataRegisterController::class, 'validateRegisterForm'])->name('validateRegisterForm');
   Route::get('/confirmar-pedido', [CheckoutValidateController::class, 'index'])->name('confirmarpedido');

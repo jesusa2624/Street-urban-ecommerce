@@ -5,7 +5,7 @@ import SearchCreateInput from '@/Components/Admin/SearchCreateInput.vue';
 
 const props = defineProps({
   categoriasExistentes: { type: Array, default: () => [] },
-  marcasPorCategoria: { type: Object, default: () => ({}) },
+  marcasExistentes: { type: Array, default: () => [] },
   editando: { type: Object, default: null }, // { id, nombre, marca, categoria } o null para crear
 });
 
@@ -14,18 +14,23 @@ const emit = defineEmits(['close']);
 const form = ref({
   nombre: props.editando?.nombre || '',
   marca: props.editando?.marca || '',
+  marcaDescripcion: '',
   categoria: props.editando?.categoria || '',
+  categoriaDescripcion: '',
+  descripcion: props.editando?.descripcion || '',
 });
 
 const isSaving = ref(false);
 const error = ref('');
 
-const marcasFiltradas = computed(() => {
-  const cat = form.value.categoria.trim();
-  if (!cat) {
-    return [...new Set(Object.values(props.marcasPorCategoria || {}).flat())].sort();
-  }
-  return (props.marcasPorCategoria || {})[cat] || [];
+const categoriaEsNueva = computed(() => {
+  const q = form.value.categoria.trim();
+  return q.length > 0 && !props.categoriasExistentes.some(c => c.toLowerCase() === q.toLowerCase());
+});
+
+const marcaEsNueva = computed(() => {
+  const q = form.value.marca.trim();
+  return q.length > 0 && !props.marcasExistentes.some(m => m.toLowerCase() === q.toLowerCase());
 });
 
 const guardar = () => {
@@ -72,11 +77,25 @@ const guardar = () => {
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
           <SearchCreateInput v-model="form.categoria" :options="categoriasExistentes" placeholder="Ej: Calzado" />
+          <textarea
+            v-if="categoriaEsNueva"
+            v-model="form.categoriaDescripcion"
+            placeholder="Descripción de la categoría (opcional)"
+            rows="2"
+            class="w-full mt-2 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff8c42] bg-white resize-none"
+          ></textarea>
         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Marca</label>
-          <SearchCreateInput v-model="form.marca" :options="marcasFiltradas" placeholder="Ej: Adidas" />
+          <SearchCreateInput v-model="form.marca" :options="marcasExistentes" placeholder="Ej: Adidas" />
+          <textarea
+            v-if="marcaEsNueva"
+            v-model="form.marcaDescripcion"
+            placeholder="Descripción de la marca (opcional)"
+            rows="2"
+            class="w-full mt-2 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff8c42] bg-white resize-none"
+          ></textarea>
         </div>
 
         <div>
@@ -87,6 +106,12 @@ const guardar = () => {
             placeholder="Ej: All Star"
             class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff8c42] bg-white"
           >
+          <textarea
+            v-model="form.descripcion"
+            placeholder="Descripción del modelo (opcional)"
+            rows="2"
+            class="w-full mt-2 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff8c42] bg-white resize-none"
+          ></textarea>
         </div>
 
         <div v-if="error" class="bg-red-50 border border-red-200 text-red-600 rounded-lg px-4 py-3 text-sm">

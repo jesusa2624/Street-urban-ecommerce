@@ -9,9 +9,9 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
-  marcasPorCategoria: {
-    type: Object,
-    default: () => ({}),
+  marcasExistentes: {
+    type: Array,
+    default: () => [],
   },
   prefill: {
     type: Object,
@@ -35,10 +35,33 @@ const prendaForm = ref({
   marca: '',
   talla: '',
   color: null,
+  colorNombre: '',
   cantidad: 1,
   precioCompra: '',
   precioVenta: '',
 });
+
+// Colores ya registrados para el modelo seleccionado (para no crear "Negro" duplicado
+// cuando ya existe "Negro con blanco", por ejemplo).
+const coloresProducto = ref([]);
+const cargandoColoresProducto = ref(false);
+const mostrarNuevoColor = ref(false);
+
+const cargarColoresProducto = async () => {
+  if (!prendaForm.value.productId) {
+    coloresProducto.value = [];
+    return;
+  }
+  cargandoColoresProducto.value = true;
+  try {
+    const res = await fetch(`/admin/catalogo/${prendaForm.value.productId}/colores`);
+    coloresProducto.value = await res.json();
+  } catch (e) {
+    coloresProducto.value = [];
+  } finally {
+    cargandoColoresProducto.value = false;
+  }
+};
 
 const isSaving = ref(false);
 const prendas = ref([]);
@@ -53,8 +76,10 @@ onMounted(() => {
     prendaForm.value.categoria = props.prefill.categoria;
     prendaForm.value.talla = props.prefill.talla;
     prendaForm.value.color = props.prefill.color;
+    prendaForm.value.colorNombre = props.prefill.colorNombre || '';
     prendaForm.value.precioCompra = props.prefill.precioCompra || '';
     prendaForm.value.precioVenta = props.prefill.precioVenta || '';
+    cargarColoresProducto();
   }
 });
 
@@ -134,10 +159,12 @@ watch(() => [prendaForm.value.categoria, prendaForm.value.marca], () => {
 const seleccionarProducto = (producto) => {
   prendaForm.value.productId = producto.id;
   prendaForm.value.nombre = producto.nombre;
-  prendaForm.value.marca = producto.marca;
+  prendaForm.value.marca = producto.marca || '';
   prendaForm.value.categoria = producto.categoria || '';
   searchQuery.value = producto.nombre;
   showSuggestions.value = false;
+  mostrarNuevoColor.value = false;
+  cargarColoresProducto();
 };
 
 const limpiarSeleccion = () => {
@@ -147,6 +174,8 @@ const limpiarSeleccion = () => {
   prendaForm.value.categoria = '';
   searchQuery.value = '';
   searchResults.value = [];
+  coloresProducto.value = [];
+  mostrarNuevoColor.value = false;
 };
 
 const onSearchInput = () => {
@@ -156,25 +185,18 @@ const onSearchInput = () => {
   buscarProductos();
 };
 
-const categoriasSugeridas = ['Camisetas', 'Polos', 'Pantalones', 'Shorts', 'Calzado', 'Accesorios', 'Chaquetas'];
-const categorias = computed(() => {
-  const combinadas = new Set([...props.categoriasExistentes, ...categoriasSugeridas]);
-  return [...combinadas].sort();
-});
+const categorias = computed(() => [...props.categoriasExistentes].sort());
 
-// Si ya eligió categoría, solo sugiere marcas ya registradas en esa categoría.
-// Si aún no elige categoría, muestra todas las marcas conocidas.
-const marcasFiltradas = computed(() => {
-  const cat = prendaForm.value.categoria.trim();
-  if (!cat) {
-    return [...new Set(Object.values(props.marcasPorCategoria || {}).flat())].sort();
-  }
-  return (props.marcasPorCategoria || {})[cat] || [];
-});
+// La marca es independiente de la categoría (una marca puede vender en varias categorías),
+// así que siempre se muestran todas las marcas registradas.
+const marcas = computed(() => [...props.marcasExistentes].sort());
 
 const tallas = ['Único', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '28', '30', '32', '34', '36', '38', '40'];
 const opcionesTalla = tallas.map(t => ({ value: t, label: t }));
-const colores = [
+
+// Paleta de ayuda solo para cuando se está creando un color realmente nuevo (no existe
+// todavía para este modelo). No se usa para nombrar colores existentes.
+const paletaColores = [
   { nombre: 'Sin color', hex: null },
   { nombre: 'Rojo', hex: '#EF4444' },
   { nombre: 'Azul', hex: '#3B82F6' },
@@ -188,18 +210,34 @@ const colores = [
   { nombre: 'Rosa', hex: '#EC4899' },
 ];
 
+const seleccionarColorExistente = (c) => {
+  prendaForm.value.colorNombre = c.nombre;
+  prendaForm.value.color = c.hex;
+};
+
+const seleccionarColorPaleta = (p) => {
+  prendaForm.value.color = p.hex;
+  prendaForm.value.colorNombre = p.nombre;
+};
+
 const agregarPrenda = () => {
-  if (!prendaForm.value.nombre || !prendaForm.value.categoria || !prendaForm.value.marca || !prendaForm.value.talla || !prendaForm.value.cantidad || !prendaForm.value.precioCompra || !prendaForm.value.precioVenta) {
+  const faltanCampos = !prendaForm.value.nombre
+    || !prendaForm.value.categoria
+    || !prendaForm.value.marca
+    || !prendaForm.value.talla
+    || prendaForm.value.cantidad === '' || prendaForm.value.cantidad == null || prendaForm.value.cantidad < 1
+    || prendaForm.value.precioCompra === '' || prendaForm.value.precioCompra == null || prendaForm.value.precioCompra < 0
+    || prendaForm.value.precioVenta === '' || prendaForm.value.precioVenta == null || prendaForm.value.precioVenta < 0;
+
+  if (faltanCampos) {
     alert('Por favor completa todos los campos');
     return;
   }
 
-  const colorObj = colores.find(c => c.hex === prendaForm.value.color);
-
   prendas.value.push({
     id: Date.now(),
     ...prendaForm.value,
-    colorNombre: colorObj?.nombre || 'Sin color',
+    colorNombre: prendaForm.value.colorNombre.trim() || 'Sin color',
     subtotal: prendaForm.value.cantidad * prendaForm.value.precioCompra,
   });
 
@@ -207,7 +245,9 @@ const agregarPrenda = () => {
   // Solo resetea lo que suele cambiar entre variantes.
   prendaForm.value.talla = '';
   prendaForm.value.color = null;
+  prendaForm.value.colorNombre = '';
   prendaForm.value.cantidad = 1;
+  mostrarNuevoColor.value = false;
 };
 
 const limpiarFormularioPrenda = () => {
@@ -218,12 +258,15 @@ const limpiarFormularioPrenda = () => {
     marca: '',
     talla: '',
     color: null,
+    colorNombre: '',
     cantidad: 1,
     precioCompra: '',
     precioVenta: '',
   };
   searchQuery.value = '';
   searchResults.value = [];
+  coloresProducto.value = [];
+  mostrarNuevoColor.value = false;
 };
 
 const eliminarPrenda = (id) => {
@@ -236,6 +279,7 @@ const editarPrenda = (id) => {
     prendaForm.value = { ...prenda };
     searchQuery.value = prenda.nombre;
     eliminarPrenda(id);
+    cargarColoresProducto();
   }
 };
 
@@ -328,7 +372,7 @@ const guardarCompra = () => {
               <label class="block text-sm font-medium text-gray-700 mb-2">Marca</label>
               <SearchCreateInput
                 v-model="marcaCapitalizada"
-                :options="marcasFiltradas"
+                :options="marcas"
                 :disabled="!!prendaForm.productId"
                 placeholder="Nike, Adidas, Gap..."
               />
@@ -394,17 +438,49 @@ const guardarCompra = () => {
 
           <div class="mb-6">
             <label class="block text-sm font-medium text-gray-700 mb-2">Color</label>
-            <div class="flex gap-2 flex-wrap">
-              <button v-for="color in colores" :key="color.nombre"
-                @click="prendaForm.color = color.hex"
-                type="button"
-                :class="['w-9 h-9 rounded-full border-2 transition-all flex items-center justify-center',
-                         prendaForm.color === color.hex ? 'border-gray-900 ring-2 ring-offset-2 ring-[#ff8c42]' : 'border-gray-200 hover:border-gray-400',
-                         color.hex === null ? 'bg-white' : '']"
-                :style="color.hex ? { backgroundColor: color.hex } : {}"
-                :title="color.nombre">
-                <i v-if="color.hex === null" class="fa-solid fa-ban text-gray-300 text-sm"></i>
+
+            <!-- Colores ya registrados para este modelo: reusarlos evita crear duplicados
+                 como "Negro" cuando ya existe "Negro con blanco". -->
+            <div v-if="coloresProducto.length > 0 && !mostrarNuevoColor">
+              <div class="flex gap-2 flex-wrap items-center">
+                <button v-for="c in coloresProducto" :key="c.id"
+                  @click="seleccionarColorExistente(c)"
+                  type="button"
+                  :class="['flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-full border-2 transition-all',
+                           prendaForm.colorNombre === c.nombre ? 'border-gray-900 ring-2 ring-offset-1 ring-[#ff8c42]' : 'border-gray-200 hover:border-gray-400']">
+                  <span class="w-6 h-6 rounded-full border border-gray-200 overflow-hidden flex-shrink-0" :style="!c.imagenUrl ? { backgroundColor: c.hex || '#e5e7eb' } : {}">
+                    <img v-if="c.imagenUrl" :src="c.imagenUrl" class="w-full h-full object-cover">
+                  </span>
+                  <span class="text-sm font-medium text-gray-700">{{ c.nombre }}</span>
+                </button>
+                <button type="button" @click="mostrarNuevoColor = true" class="text-sm font-semibold text-[#ff8c42] hover:underline px-2 py-1.5">
+                  + Otro color
+                </button>
+              </div>
+            </div>
+
+            <div v-else>
+              <button v-if="coloresProducto.length > 0" type="button" @click="mostrarNuevoColor = false" class="text-xs text-gray-400 hover:text-gray-600 mb-2 flex items-center gap-1">
+                <i class="fa-solid fa-arrow-left text-[10px]"></i> Ver colores ya registrados
               </button>
+              <input
+                v-model="prendaForm.colorNombre"
+                type="text"
+                placeholder="Nombre del color, ej: Negro con blanco"
+                class="w-full mb-2 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff8c42] bg-white"
+              >
+              <div class="flex gap-2 flex-wrap">
+                <button v-for="color in paletaColores" :key="color.nombre"
+                  @click="seleccionarColorPaleta(color)"
+                  type="button"
+                  :class="['w-9 h-9 rounded-full border-2 transition-all flex items-center justify-center',
+                           prendaForm.color === color.hex ? 'border-gray-900 ring-2 ring-offset-2 ring-[#ff8c42]' : 'border-gray-200 hover:border-gray-400',
+                           color.hex === null ? 'bg-white' : '']"
+                  :style="color.hex ? { backgroundColor: color.hex } : {}"
+                  :title="color.nombre">
+                  <i v-if="color.hex === null" class="fa-solid fa-ban text-gray-300 text-sm"></i>
+                </button>
+              </div>
             </div>
           </div>
 

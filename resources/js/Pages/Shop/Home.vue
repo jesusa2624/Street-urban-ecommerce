@@ -5,7 +5,8 @@ import ShopLayout from '@/Layouts/Shop/ShopLayout.vue';
 import ProductCard from '@/Components/Shop/ProductCard.vue';
 
 defineProps({
-  products: Array
+  products: Array,
+  categories: Array,
 });
 
 const visible = ref(false);
@@ -68,59 +69,22 @@ onMounted(() => {
       <h2 class="text-2xl md:text-3xl font-black uppercase tracking-tighter mb-12 italic">
         Explora por <span class="text-white/50">Categoría</span>
       </h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Ropa -->
-        <Link :href="`${route('shop.tienda')}?category=Ropa`" class="group relative h-80 rounded-2xl overflow-hidden block">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Link
+          v-for="category in categories"
+          :key="category.name"
+          :href="`${route('shop.tienda')}?category=${encodeURIComponent(category.name)}`"
+          class="group relative h-80 rounded-2xl overflow-hidden block bg-[#1a1a1a]"
+        >
           <img
-            src="/image/shop/ropa.jpeg"
-            alt="Ropa"
+            v-if="category.image"
+            :src="category.image"
+            :alt="category.name"
             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
           <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent group-hover:from-black/90 transition-all duration-300"></div>
           <div class="absolute bottom-0 left-0 right-0 p-6">
-            <h3 class="text-2xl font-black uppercase tracking-tight text-white">Ropa</h3>
-            <p class="text-sm text-gray-300 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Ver colección</p>
-          </div>
-        </Link>
-
-        <!-- Calzado -->
-        <Link :href="`${route('shop.tienda')}?category=Calzados`" class="group relative h-80 rounded-2xl overflow-hidden block">
-          <img
-            src="/image/shop/calzados.jpeg"
-            alt="Calzado"
-            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent group-hover:from-black/90 transition-all duration-300"></div>
-          <div class="absolute bottom-0 left-0 right-0 p-6">
-            <h3 class="text-2xl font-black uppercase tracking-tight text-white">Calzado</h3>
-            <p class="text-sm text-gray-300 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Ver colección</p>
-          </div>
-        </Link>
-
-        <!-- Accesorios -->
-        <Link :href="`${route('shop.tienda')}?category=Accesorios`" class="group relative h-80 rounded-2xl overflow-hidden block">
-          <img
-            src="/image/shop/accesorio.jpeg"
-            alt="Accesorios"
-            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent group-hover:from-black/90 transition-all duration-300"></div>
-          <div class="absolute bottom-0 left-0 right-0 p-6">
-            <h3 class="text-2xl font-black uppercase tracking-tight text-white">Accesorios</h3>
-            <p class="text-sm text-gray-300 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Ver colección</p>
-          </div>
-        </Link>
-
-        <!-- Sombrería -->
-        <Link :href="`${route('shop.tienda')}?category=Sombrería`" class="group relative h-80 rounded-2xl overflow-hidden block">
-          <img
-            src="/image/shop/gorro.jpeg"
-            alt="Sombrería"
-            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent group-hover:from-black/90 transition-all duration-300"></div>
-          <div class="absolute bottom-0 left-0 right-0 p-6">
-            <h3 class="text-2xl font-black uppercase tracking-tight text-white">Sombrería</h3>
+            <h3 class="text-2xl font-black uppercase tracking-tight text-white">{{ category.name }}</h3>
             <p class="text-sm text-gray-300 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Ver colección</p>
           </div>
         </Link>

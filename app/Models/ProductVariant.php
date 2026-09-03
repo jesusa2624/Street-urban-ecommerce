@@ -6,15 +6,21 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProductVariant extends Model
 {
-    protected $fillable = ['product_id', 'size', 'color', 'color_hex', 'sku', 'stock', 'cost'];
+    protected $fillable = ['product_id', 'product_color_id', 'size', 'sku', 'stock', 'cost', 'price'];
 
     protected $casts = [
         'cost' => 'decimal:2',
+        'price' => 'decimal:2',
     ];
 
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function productColor()
+    {
+        return $this->belongsTo(ProductColor::class);
     }
 
     public function purchaseItems()

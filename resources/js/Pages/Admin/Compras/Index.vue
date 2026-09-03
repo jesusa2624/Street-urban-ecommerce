@@ -209,7 +209,7 @@
       </div>
     </div>
 
-    <RegistrarCompraModal v-if="showModal" :categorias-existentes="categorias" :marcas-por-categoria="marcasPorCategoria" :prefill="prefillData" @close="cerrarModal" />
+    <RegistrarCompraModal v-if="showModal" :categorias-existentes="categorias" :marcas-existentes="marcas" :prefill="prefillData" @close="cerrarModal" />
   </AdminLayout>
 </template>
 
@@ -225,7 +225,7 @@ const props = defineProps({
   variants: Array,
   stats: Object,
   categorias: Array,
-  marcasPorCategoria: Object,
+  marcas: Array,
 });
 
 const page = usePage();
@@ -240,6 +240,7 @@ const reabastecer = (variant) => {
     categoria: variant.categoria,
     talla: variant.talla,
     color: variant.colorHex,
+    colorNombre: variant.color,
     precioCompra: variant.precioCompra,
     precioVenta: variant.precioVenta,
   };
