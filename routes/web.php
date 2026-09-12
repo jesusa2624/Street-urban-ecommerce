@@ -12,8 +12,15 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Admin\ProductAdminController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\CustomerAdminController;
+use App\Http\Controllers\Admin\SupplierAdminController;
 use App\Http\Controllers\Admin\PurchaseController;
+use App\Http\Controllers\Admin\SaleController;
+use App\Http\Controllers\Admin\UserAdminController;
+use App\Http\Controllers\Admin\BusinessSettingController;
+use App\Http\Controllers\Admin\CategoryBrandController;
+use App\Http\Controllers\Admin\AvatarAdminController;
 use App\Http\Controllers\Admin\CatalogoController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\Auth\ActivateAccountController;
@@ -22,12 +29,14 @@ use App\Http\Controllers\Auth\LogoutController;
 
 // Rutas de administración
 Route::middleware(['auth'])->prefix('admin')->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Admin/Dashboard');
-    })->name('admin.dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 
     Route::resource('products', ProductAdminController::class, ['as' => 'admin']);
     Route::resource('customers', CustomerAdminController::class, ['as' => 'admin']);
+    Route::get('/customers/{customer}/historial', [CustomerAdminController::class, 'historial'])->name('admin.customers.historial');
+
+    Route::resource('suppliers', SupplierAdminController::class, ['as' => 'admin']);
+    Route::get('/suppliers/{supplier}/historial', [SupplierAdminController::class, 'historial'])->name('admin.suppliers.historial');
 
     Route::get('/compras', [PurchaseController::class, 'index'])->name('admin.purchases.index');
     Route::post('/compras', [PurchaseController::class, 'store'])->name('admin.purchases.store');
@@ -35,6 +44,17 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/compras/variantes/{variant}/lotes', [PurchaseController::class, 'lotes'])->name('admin.purchases.lotes');
     Route::get('/compras/historial', [PurchaseController::class, 'historial'])->name('admin.purchases.historial');
     Route::get('/compras/reportes', [PurchaseController::class, 'reportes'])->name('admin.purchases.reportes');
+    Route::patch('/compras/{compra}/cancelar', [PurchaseController::class, 'cancel'])->name('admin.purchases.cancel');
+
+    Route::get('/ventas', [SaleController::class, 'index'])->name('admin.sales.index');
+    Route::get('/ventas/registrar', [SaleController::class, 'create'])->name('admin.sales.create');
+    Route::post('/ventas', [SaleController::class, 'store'])->name('admin.sales.store');
+    Route::get('/ventas/buscar-variantes', [SaleController::class, 'searchVariants'])->name('admin.sales.search');
+    Route::get('/ventas/buscar-clientes', [SaleController::class, 'searchClientes'])->name('admin.sales.search-clientes');
+    Route::get('/ventas/reportes', [SaleController::class, 'reportes'])->name('admin.sales.reportes');
+    Route::get('/ventas/{venta}/boleta', [SaleController::class, 'boleta'])->name('admin.sales.boleta');
+    Route::patch('/ventas/{venta}/cancelar', [SaleController::class, 'cancel'])->name('admin.sales.cancel');
+    Route::post('/ventas/items/{item}/devolver', [SaleController::class, 'returnItem'])->name('admin.sales.items.return');
 
     Route::get('/catalogo', [CatalogoController::class, 'index'])->name('admin.catalogo.index');
     Route::post('/catalogo', [CatalogoController::class, 'store'])->name('admin.catalogo.store');
@@ -45,6 +65,25 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::delete('/catalogo/colores/{color}', [CatalogoController::class, 'destroyColor'])->name('admin.catalogo.colores.destroy');
     Route::patch('/catalogo/{producto}', [CatalogoController::class, 'update'])->name('admin.catalogo.update');
     Route::delete('/catalogo/{producto}', [CatalogoController::class, 'destroy'])->name('admin.catalogo.destroy');
+
+    // Gestión de usuarios/roles y datos del negocio — solo un administrador puede entrar aquí.
+    Route::middleware(['admin.only'])->group(function () {
+        Route::resource('users', UserAdminController::class, ['as' => 'admin']);
+        Route::get('/settings', [BusinessSettingController::class, 'edit'])->name('admin.settings.edit');
+        Route::patch('/settings', [BusinessSettingController::class, 'update'])->name('admin.settings.update');
+
+        Route::get('/categorias-marcas', [CategoryBrandController::class, 'index'])->name('admin.taxonomies.index');
+        Route::post('/categorias', [CategoryBrandController::class, 'storeCategory'])->name('admin.categories.store');
+        Route::patch('/categorias/{category}', [CategoryBrandController::class, 'updateCategory'])->name('admin.categories.update');
+        Route::delete('/categorias/{category}', [CategoryBrandController::class, 'destroyCategory'])->name('admin.categories.destroy');
+        Route::post('/marcas', [CategoryBrandController::class, 'storeBrand'])->name('admin.brands.store');
+        Route::patch('/marcas/{brand}', [CategoryBrandController::class, 'updateBrand'])->name('admin.brands.update');
+        Route::delete('/marcas/{brand}', [CategoryBrandController::class, 'destroyBrand'])->name('admin.brands.destroy');
+
+        Route::get('/avatares', [AvatarAdminController::class, 'index'])->name('admin.avatars.index');
+        Route::post('/avatares', [AvatarAdminController::class, 'store'])->name('admin.avatars.store');
+        Route::delete('/avatares/{avatar}', [AvatarAdminController::class, 'destroy'])->name('admin.avatars.destroy');
+    });
 });
 
 // Rutas de la tienda
@@ -83,7 +122,7 @@ Route::name('shop.')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::patch('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
 });
 
 // Rutas de autenticación (públicas)

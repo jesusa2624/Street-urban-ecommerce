@@ -10,6 +10,7 @@ use App\Models\ProductColor;
 use App\Models\ProductVariant;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -20,22 +21,35 @@ class PurchaseController extends Controller
 {
     public function index()
     {
-        $variants = ProductVariant::with(['product.category', 'product.brand', 'productColor'])
+        $variants = ProductVariant::with([
+                'product.category',
+                'product.brand',
+                'productColor',
+                'purchaseItems' => fn ($q) => $q->with('purchase')->latest('created_at'),
+            ])
             ->orderByDesc('updated_at')
             ->get()
-            ->map(fn ($variant) => [
-                'id' => $variant->id,
-                'productId' => $variant->product_id,
-                'producto' => $variant->product->name,
-                'marca' => $variant->product->brand->name ?? '-',
-                'categoria' => $variant->product->category->name ?? '-',
-                'talla' => $variant->size,
-                'color' => $variant->productColor->name ?? '-',
-                'colorHex' => $variant->productColor->hex ?? null,
-                'stock' => $variant->stock,
-                'precioCompra' => (float) $variant->cost,
-                'precioVenta' => (float) $variant->product->price,
-            ]);
+            ->map(function ($variant) {
+                // Último lote registrado de esta variante: se usa para sugerir el mismo
+                // proveedor al "Reabastecer" (una variante puede haberse comprado a más
+                // de un proveedor en el tiempo, así que es solo una sugerencia editable).
+                $ultimoLote = $variant->purchaseItems->first();
+
+                return [
+                    'id' => $variant->id,
+                    'productId' => $variant->product_id,
+                    'producto' => $variant->product->name,
+                    'marca' => $variant->product->brand->name ?? '-',
+                    'categoria' => $variant->product->category->name ?? '-',
+                    'talla' => $variant->size,
+                    'color' => $variant->productColor->name ?? '-',
+                    'colorHex' => $variant->productColor->hex ?? null,
+                    'stock' => $variant->stock,
+                    'precioCompra' => (float) $variant->cost,
+                    'precioVenta' => (float) $variant->product->price,
+                    'ultimoProveedor' => $ultimoLote?->purchase?->supplier ?: null,
+                ];
+            });
 
         // Valor real de inventario: suma de lo que queda de cada lote a su costo real (FIFO),
         // no cantidad total x último costo, ya que un mismo producto puede tener lotes a precios distintos.
@@ -56,42 +70,96 @@ class PurchaseController extends Controller
         ]);
     }
 
+    private function mapCompra(Purchase $p): array
+    {
+        return [
+            'id' => $p->id,
+            'numero' => 'C-' . str_pad($p->id, 5, '0', STR_PAD_LEFT),
+            'fecha' => $p->purchase_date->format('d/m/Y'),
+            'proveedor' => $p->supplier,
+            'factura' => $p->invoice_number,
+            'notas' => $p->notes,
+            'total' => (float) $p->total,
+            'registradoPor' => $p->user->name ?? null,
+            'totalPrendas' => $p->items->sum('quantity'),
+            'cancelada' => $p->cancelled_at !== null,
+            'canceladaPor' => $p->cancelledBy->name ?? null,
+            'items' => $p->items->map(fn ($item) => [
+                'producto' => $item->variant->product->name,
+                'marca' => $item->variant->product->brand->name ?? '-',
+                'talla' => $item->variant->size,
+                'color' => $item->variant->productColor->name ?? '-',
+                'colorHex' => $item->variant->productColor->hex ?? null,
+                'cantidad' => $item->quantity,
+                'costoUnitario' => (float) $item->unit_cost,
+                'subtotal' => (float) $item->subtotal,
+            ]),
+        ];
+    }
+
     public function historial()
     {
-        $compras = Purchase::with(['items.variant.product.brand', 'items.variant.productColor', 'user'])
+        $compras = Purchase::with(['items.variant.product.brand', 'items.variant.productColor', 'user', 'cancelledBy'])
             ->orderByDesc('purchase_date')
             ->orderByDesc('id')
             ->get()
-            ->map(fn ($p) => [
-                'id' => $p->id,
-                'numero' => 'C-' . str_pad($p->id, 5, '0', STR_PAD_LEFT),
-                'fecha' => $p->purchase_date->format('d/m/Y'),
-                'proveedor' => $p->supplier,
-                'factura' => $p->invoice_number,
-                'notas' => $p->notes,
-                'total' => (float) $p->total,
-                'registradoPor' => $p->user->name ?? null,
-                'totalPrendas' => $p->items->sum('quantity'),
-                'items' => $p->items->map(fn ($item) => [
-                    'producto' => $item->variant->product->name,
-                    'marca' => $item->variant->product->brand->name ?? '-',
-                    'talla' => $item->variant->size,
-                    'color' => $item->variant->productColor->name ?? '-',
-                    'colorHex' => $item->variant->productColor->hex ?? null,
-                    'cantidad' => $item->quantity,
-                    'costoUnitario' => (float) $item->unit_cost,
-                    'subtotal' => (float) $item->subtotal,
-                ]),
-            ]);
+            ->map(fn ($p) => $this->mapCompra($p));
+
+        // Las compras canceladas se siguen mostrando en el historial (por trazabilidad),
+        // pero no cuentan como gasto real.
+        $vigentes = $compras->reject('cancelada');
 
         return Inertia::render('Admin/Compras/Historial', [
             'compras' => $compras,
             'stats' => [
-                'totalCompras' => $compras->count(),
-                'totalGastado' => $compras->sum('total'),
-                'promedioCompra' => $compras->count() > 0 ? $compras->sum('total') / $compras->count() : 0,
+                'totalCompras' => $vigentes->count(),
+                'totalGastado' => $vigentes->sum('total'),
+                'promedioCompra' => $vigentes->count() > 0 ? $vigentes->sum('total') / $vigentes->count() : 0,
             ],
         ]);
+    }
+
+    // Revierte una compra completa: descuenta de las variantes el stock que esa compra
+    // había agregado, y la marca como cancelada (no se borra, queda en el historial).
+    // Solo se puede cancelar si nada de esa compra ya fue vendido — si ya se vendió,
+    // hay que cancelar esa venta primero para no dejar el stock/valor de inventario mal.
+    // Solo un administrador puede hacerlo, ya que afecta cifras de gasto ya reportadas.
+    public function cancel(Purchase $compra)
+    {
+        if (Auth::guard('web')->user()->role !== 'admin') {
+            abort(403, 'Solo un administrador puede cancelar una compra.');
+        }
+
+        if ($compra->cancelled_at !== null) {
+            return back()->withErrors(['error' => 'Esta compra ya estaba cancelada.']);
+        }
+
+        $compra->load('items');
+
+        $yaVendido = $compra->items->contains(fn ($item) => $item->quantity_remaining < $item->quantity);
+        if ($yaVendido) {
+            return back()->withErrors(['error' => 'No se puede cancelar: parte de esta compra ya fue vendida. Cancela esa venta primero.']);
+        }
+
+        DB::transaction(function () use ($compra) {
+            foreach ($compra->items as $item) {
+                $variant = ProductVariant::find($item->product_variant_id);
+
+                if ($variant) {
+                    $variant->decrement('stock', $item->quantity);
+                    $variant->product->decrement('stock', $item->quantity);
+                }
+
+                $item->update(['quantity_remaining' => 0]);
+            }
+
+            $compra->update([
+                'cancelled_at' => now(),
+                'cancelled_by' => Auth::guard('web')->id(),
+            ]);
+        });
+
+        return back()->with('success', 'Compra cancelada. El stock fue revertido.');
     }
 
     public function reportes(Request $request)
@@ -126,9 +194,11 @@ class PurchaseController extends Controller
             ])
             ->sortByDesc('total')->values();
 
-        $porProveedor = $items->groupBy(fn ($i) => $i->purchase->supplier ?: 'Sin proveedor')
-            ->map(fn ($group, $nombre) => [
-                'label' => $nombre,
+        // Se agrupa por supplier_id cuando la compra está vinculada a un proveedor real,
+        // para no confundir a dos proveedores distintos que se escribieron con el mismo nombre.
+        $porProveedor = $items->groupBy(fn ($i) => $i->purchase->supplier_id ? "id:{$i->purchase->supplier_id}" : 'nombre:' . ($i->purchase->supplier ?: 'Sin proveedor'))
+            ->map(fn ($group) => [
+                'label' => $group->first()->purchase->supplier ?: 'Sin proveedor',
                 'total' => $group->sum('subtotal'),
                 'unidades' => $group->sum('quantity'),
                 'compras' => $group->pluck('purchase_id')->unique()->count(),
@@ -262,10 +332,26 @@ class PurchaseController extends Controller
         $purchase = DB::transaction(function () use ($validated) {
             $total = collect($validated['prendas'])->sum(fn ($p) => $p['cantidad'] * $p['precioCompra']);
 
+            // Igual que con el cliente en Ventas: si escriben un proveedor a mano, se
+            // reutiliza uno ya registrado con ese nombre o se crea como nuevo, para que
+            // toda compra con proveedor quede vinculada a un registro real.
+            $proveedorVinculado = null;
+
+            if (!empty($validated['tienda'])) {
+                $nombreProveedor = trim($validated['tienda']);
+
+                $proveedorVinculado = Supplier::whereRaw('LOWER(TRIM(name)) = ?', [mb_strtolower($nombreProveedor)])->first();
+
+                if (!$proveedorVinculado) {
+                    $proveedorVinculado = Supplier::create(['name' => $nombreProveedor]);
+                }
+            }
+
             $purchase = Purchase::create([
                 'user_id' => Auth::guard('web')->id(),
                 'purchase_date' => $validated['fecha'],
-                'supplier' => $validated['tienda'] ?? null,
+                'supplier' => $proveedorVinculado->name ?? null,
+                'supplier_id' => $proveedorVinculado->id ?? null,
                 'invoice_number' => $validated['factura'] ?? null,
                 'notes' => $validated['notas'] ?? null,
                 'total' => $total,

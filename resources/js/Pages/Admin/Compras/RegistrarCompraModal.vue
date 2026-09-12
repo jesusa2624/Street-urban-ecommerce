@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 import SelectDropdown from '@/Components/Admin/SelectDropdown.vue';
 import SearchCreateInput from '@/Components/Admin/SearchCreateInput.vue';
+import ColorSwatch from '@/Components/Admin/ColorSwatch.vue';
 
 const props = defineProps({
   categoriasExistentes: {
@@ -79,6 +80,9 @@ onMounted(() => {
     prendaForm.value.colorNombre = props.prefill.colorNombre || '';
     prendaForm.value.precioCompra = props.prefill.precioCompra || '';
     prendaForm.value.precioVenta = props.prefill.precioVenta || '';
+    // Sugerencia del último proveedor de esta variante — el usuario la puede cambiar
+    // si esta vez la está comprando en otro lado.
+    compraForm.value.tienda = props.prefill.tienda || '';
     cargarColoresProducto();
   }
 });
@@ -448,8 +452,9 @@ const guardarCompra = () => {
                   type="button"
                   :class="['flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-full border-2 transition-all',
                            prendaForm.colorNombre === c.nombre ? 'border-gray-900 ring-2 ring-offset-1 ring-[#ff8c42]' : 'border-gray-200 hover:border-gray-400']">
-                  <span class="w-6 h-6 rounded-full border border-gray-200 overflow-hidden flex-shrink-0" :style="!c.imagenUrl ? { backgroundColor: c.hex || '#e5e7eb' } : {}">
+                  <span class="w-6 h-6 rounded-full border border-gray-200 overflow-hidden flex-shrink-0 inline-block">
                     <img v-if="c.imagenUrl" :src="c.imagenUrl" class="w-full h-full object-cover">
+                    <ColorSwatch v-else :hex="c.hex" class="w-full h-full" />
                   </span>
                   <span class="text-sm font-medium text-gray-700">{{ c.nombre }}</span>
                 </button>
@@ -557,7 +562,7 @@ const guardarCompra = () => {
                   <td class="py-3 px-4 text-gray-600">{{ prenda.talla }}</td>
                   <td class="py-3 px-4">
                     <div class="flex items-center gap-2">
-                      <div class="w-6 h-6 rounded-full border border-gray-200" :style="{ backgroundColor: prenda.color }"></div>
+                      <ColorSwatch :hex="prenda.color" class="w-6 h-6 rounded-full border border-gray-200" />
                       <span class="text-gray-600">{{ prenda.colorNombre }}</span>
                     </div>
                   </td>

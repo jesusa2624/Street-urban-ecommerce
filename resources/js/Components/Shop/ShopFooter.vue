@@ -1,5 +1,9 @@
 <script setup>
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
+
+const page = usePage();
+const business = computed(() => page.props.business);
 </script>
 
 <template>
@@ -60,7 +64,7 @@ import { Link } from '@inertiajs/vue3';
     </div>
 
     <div class="max-w-[1600px] mx-auto px-4 md:px-8 lg:px-16 mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
-      <p>&copy; 2026 Street Urban. All rights reserved.</p>
+      <p>&copy; 2026 {{ business.name }}. All rights reserved.</p>
       <div class="flex gap-6">
         <Link :href="route('shop.terminos')" class="hover:text-white transition-colors">Términos de Servicio</Link>
         <Link :href="route('shop.privacidad')" class="hover:text-white transition-colors">Política de Privacidad</Link>

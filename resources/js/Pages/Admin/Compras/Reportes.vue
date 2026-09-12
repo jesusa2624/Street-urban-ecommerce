@@ -1,4 +1,5 @@
 <template>
+  <Head title="Reportes de Compras" />
   <AdminLayout>
     <template #breadcrumb>Compras / Reportes</template>
     <template #header>Reportes de Compras</template>
@@ -237,7 +238,7 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import SelectDropdown from '@/Components/Admin/SelectDropdown.vue';
-import { Link, router } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { reactive, computed } from 'vue';
 
 const props = defineProps({

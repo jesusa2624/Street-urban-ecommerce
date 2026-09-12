@@ -17,14 +17,27 @@ class CatalogoController extends Controller
     public function index()
     {
         $productos = Product::with(['category', 'brand', 'variants'])
-            ->withCount('variants')
-            ->orderBy('name')
+            ->withCount('colors')
+            ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
+            ->leftJoin('brands', 'brands.id', '=', 'products.brand_id')
+            ->orderBy('categories.name')
+            ->orderBy('brands.name')
+            ->orderBy('products.name')
+            ->addSelect('products.*')
             ->get()
             ->map(function ($p) {
                 // El precio de venta vive por variante (cada color/talla puede costar distinto,
                 // ej. una edición limitada). Si aún no hay variantes se usa el precio base del modelo.
                 $precioMin = $p->variants->min('price');
                 $precioMax = $p->variants->max('price');
+
+                // Tallas únicas entre todos los colores, en el mismo orden que se usa al
+                // registrar (RegistrarModeloModal/RegistrarCompraModal) — solo para tener
+                // una vista previa rápida, sin tener que expandir el modelo.
+                $ordenTallas = ['Único', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '28', '30', '32', '34', '36', '38', '40'];
+                $tallas = $p->variants->pluck('size')->unique()
+                    ->sortBy(fn ($talla) => ($idx = array_search($talla, $ordenTallas)) === false ? 999 : $idx)
+                    ->values();
 
                 return [
                     'id' => $p->id,
@@ -35,7 +48,10 @@ class CatalogoController extends Controller
                     'stock' => $p->stock,
                     'precioVenta' => (float) ($precioMin ?? $p->price),
                     'precioVentaMax' => ($precioMax !== null && (float) $precioMax !== (float) ($precioMin ?? $p->price)) ? (float) $precioMax : null,
-                    'variantes' => $p->variants_count,
+                    // "Variantes" = colores del modelo (ej. blanco vs negro). Las tallas son
+                    // el desglose dentro de cada color, no una variante en sí misma.
+                    'variantes' => $p->colors_count,
+                    'tallas' => $tallas,
                 ];
             });
 
@@ -131,24 +147,28 @@ class CatalogoController extends Controller
         return redirect()->route('admin.catalogo.index')->with('success', 'Modelo actualizado.');
     }
 
+    // Agrupa por color (la "variante" real del modelo) y anida las tallas dentro
+    // de cada uno, ya que la talla es solo el desglose de stock de ese color.
     public function variantes(Product $producto)
     {
-        $variantes = $producto->variants()
-            ->with('productColor')
-            ->orderBy('size')
+        $colores = $producto->colors()
+            ->with(['variants' => fn ($q) => $q->orderBy('size')])
+            ->orderBy('name')
             ->get()
-            ->sortBy(fn ($v) => $v->productColor->name ?? '')
-            ->values()
-            ->map(fn ($v) => [
-                'id' => $v->id,
-                'talla' => $v->size,
-                'color' => $v->productColor->name ?? '-',
-                'colorHex' => $v->productColor->hex ?? null,
-                'stock' => $v->stock,
-                'costo' => (float) $v->cost,
+            ->map(fn ($c) => [
+                'id' => $c->id,
+                'nombre' => $c->name,
+                'hex' => $c->hex,
+                'stockTotal' => $c->variants->sum('stock'),
+                'tallas' => $c->variants->map(fn ($v) => [
+                    'id' => $v->id,
+                    'talla' => $v->size,
+                    'stock' => $v->stock,
+                    'costo' => (float) $v->cost,
+                ])->values(),
             ]);
 
-        return response()->json($variantes);
+        return response()->json($colores);
     }
 
     public function colores(Product $producto)

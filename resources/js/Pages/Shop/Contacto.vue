@@ -1,7 +1,11 @@
 <script setup>
-import { ref } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import ShopLayout from '@/Layouts/Shop/ShopLayout.vue';
+
+const page = usePage();
+const business = computed(() => page.props.business);
+const whatsappLink = computed(() => business.value.whatsapp ? `https://wa.me/${business.value.whatsapp}` : '#');
 
 const form = ref({
   name: '',
@@ -55,7 +59,7 @@ const submitForm = () => {
             </h1>
 
             <p class="text-xl md:text-2xl text-gray-300 leading-relaxed max-w-3xl font-light">
-              En Street Urban, cada mensaje cuenta. Queremos escucharte, responder tus preguntas y conocer tus ideas innovadoras que puedan transformar nuestra comunidad.
+              En {{ business.name }}, cada mensaje cuenta. Queremos escucharte, responder tus preguntas y conocer tus ideas innovadoras que puedan transformar nuestra comunidad.
             </p>
           </div>
 
@@ -111,8 +115,8 @@ const submitForm = () => {
               <p class="text-gray-400 leading-relaxed mb-8 text-lg">
                 Envíanos tu mensaje y nos pondremos en contacto en las próximas 24 horas.
               </p>
-              <a href="mailto:contacto@streeturban.com" class="inline-flex items-center gap-3 text-[#ff8c42] hover:text-[#ffb380] font-bold transition-all group/link">
-                contacto@streeturban.com
+              <a :href="`mailto:${business.email}`" class="inline-flex items-center gap-3 text-[#ff8c42] hover:text-[#ffb380] font-bold transition-all group/link">
+                {{ business.email }}
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 group-hover/link:translate-x-1 transition-transform">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>
@@ -133,8 +137,8 @@ const submitForm = () => {
               <p class="text-gray-400 leading-relaxed mb-8 text-lg">
                 Habla directamente con nuestro equipo para una respuesta inmediata.
               </p>
-              <a href="tel:+51987654234" class="inline-flex items-center gap-3 text-[#ff8c42] hover:text-[#ffb380] font-bold transition-all group/link">
-                +51 987 654 234
+              <a :href="`tel:${business.phone}`" class="inline-flex items-center gap-3 text-[#ff8c42] hover:text-[#ffb380] font-bold transition-all group/link">
+                {{ business.phone }}
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 group-hover/link:translate-x-1 transition-transform">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>
@@ -178,7 +182,7 @@ const submitForm = () => {
               </p>
               <div class="flex gap-4">
                 <a href="#" class="px-6 py-3 border border-[#ff8c42] text-[#ff8c42] hover:bg-[#ff8c42]/10 font-bold rounded-lg transition-all text-sm uppercase tracking-wider">Instagram</a>
-                <a href="https://wa.me/51987654234" target="_blank" class="px-6 py-3 border border-[#ff8c42] text-[#ff8c42] hover:bg-[#ff8c42]/10 font-bold rounded-lg transition-all text-sm uppercase tracking-wider">WhatsApp</a>
+                <a :href="whatsappLink" target="_blank" class="px-6 py-3 border border-[#ff8c42] text-[#ff8c42] hover:bg-[#ff8c42]/10 font-bold rounded-lg transition-all text-sm uppercase tracking-wider">WhatsApp</a>
               </div>
             </div>
           </div>
@@ -333,7 +337,7 @@ const submitForm = () => {
             </div>
 
             <p class="text-lg text-gray-400 leading-relaxed max-w-2xl">
-              Mantente en el loop con nuestros últimos drops, contenido exclusivo, behind-the-scenes y eventos especiales de Street Urban.
+              Mantente en el loop con nuestros últimos drops, contenido exclusivo, behind-the-scenes y eventos especiales de {{ business.name }}.
             </p>
 
             <div class="h-1 w-32 bg-gradient-to-r from-[#ff8c42] to-white rounded-full"></div>
@@ -351,7 +355,7 @@ const submitForm = () => {
               </div>
             </a>
 
-            <a href="https://wa.me/51987654234" target="_blank" class="group relative overflow-hidden rounded-2xl border border-gray-800 hover:border-[#ff8c42]/50 transition-all duration-500 bg-gradient-to-br from-gray-900/60 to-black/40 p-8 hover:shadow-lg hover:shadow-[#ff8c42]/20">
+            <a :href="whatsappLink" target="_blank" class="group relative overflow-hidden rounded-2xl border border-gray-800 hover:border-[#ff8c42]/50 transition-all duration-500 bg-gradient-to-br from-gray-900/60 to-black/40 p-8 hover:shadow-lg hover:shadow-[#ff8c42]/20">
               <div class="absolute inset-0 bg-gradient-to-br from-[#ff8c42]/0 to-[#ff8c42]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div class="relative z-10 text-center">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 text-[#ff8c42] mx-auto mb-4 group-hover:scale-110 transition-transform">

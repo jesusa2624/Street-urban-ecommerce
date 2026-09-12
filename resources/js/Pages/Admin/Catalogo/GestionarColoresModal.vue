@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { router } from '@inertiajs/vue3';
+import ColorSwatch from '@/Components/Admin/ColorSwatch.vue';
 
 const props = defineProps({
   producto: { type: Object, required: true }, // { id, nombre, marca }
@@ -154,7 +155,7 @@ const eliminarColor = (color) => {
               <div class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
                 <img v-if="c.imagenUrl" :src="c.imagenUrl" :alt="c.nombre" class="w-full h-full object-cover">
                 <div v-else class="w-full h-full flex items-center justify-center">
-                  <div class="w-6 h-6 rounded-full border border-gray-300" :style="{ backgroundColor: c.hex || '#e5e7eb' }"></div>
+                  <ColorSwatch :hex="c.hex" class="w-6 h-6 rounded-full border border-gray-300" />
                 </div>
               </div>
               <div class="min-w-0 flex-1">

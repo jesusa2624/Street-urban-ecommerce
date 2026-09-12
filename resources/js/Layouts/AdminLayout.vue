@@ -28,10 +28,7 @@
       <!-- Navigation -->
       <nav class="flex-1 px-4 py-6 space-y-5 overflow-y-auto">
         <div v-for="group in menuGroups" :key="group.label" class="space-y-1">
-          <p
-            v-if="!(group.items.length === 1 && group.items[0].name === group.label)"
-            class="px-3 text-[11px] font-bold text-gray-400 uppercase tracking-widest"
-          >
+          <p class="px-3 text-[11px] font-bold text-gray-400 uppercase tracking-widest">
             {{ group.label }}
           </p>
           <component
@@ -58,8 +55,9 @@
       <!-- Bottom Section: user + logout -->
       <div class="px-4 py-4 border-t border-gray-100">
         <div class="flex items-center gap-3 px-3 py-2 mb-1">
-          <div class="w-9 h-9 rounded-full bg-[#ff8c42] flex items-center justify-center text-white font-bold text-sm">
-            {{ userInitial }}
+          <div class="w-9 h-9 rounded-full bg-[#ff8c42] flex items-center justify-center text-white font-bold text-sm flex-shrink-0 overflow-hidden">
+            <img v-if="userAvatarUrl" :src="userAvatarUrl" class="w-full h-full object-cover" />
+            <template v-else>{{ userInitial }}</template>
           </div>
           <div class="min-w-0">
             <p class="text-sm font-semibold text-gray-800 truncate">{{ userName }}</p>
@@ -101,8 +99,9 @@
             </div>
 
             <div class="flex items-center gap-2">
-              <div class="w-9 h-9 rounded-full bg-[#ff8c42] flex items-center justify-center text-white font-bold text-sm">
-                {{ userInitial }}
+              <div class="w-9 h-9 rounded-full bg-[#ff8c42] flex items-center justify-center text-white font-bold text-sm flex-shrink-0 overflow-hidden">
+                <img v-if="userAvatarUrl" :src="userAvatarUrl" class="w-full h-full object-cover" />
+                <template v-else>{{ userInitial }}</template>
               </div>
               <span class="text-sm font-semibold text-gray-800 hidden sm:block">{{ userName }}</span>
             </div>
@@ -126,10 +125,13 @@ const page = usePage();
 
 const userName = computed(() => page.props.auth?.user?.name ?? 'Admin');
 const userInitial = computed(() => userName.value.charAt(0).toUpperCase());
+const userAvatarUrl = computed(() => page.props.auth?.user?.avatar_url ?? null);
 const userRoleLabel = computed(() => {
   const role = page.props.auth?.user?.role;
   return role === 'admin' ? 'Administrador' : role === 'vendedor' ? 'Vendedor' : 'Staff';
 });
+
+const esAdmin = computed(() => page.props.auth?.user?.role === 'admin');
 
 const menuGroups = computed(() => [
   {
@@ -149,21 +151,29 @@ const menuGroups = computed(() => [
   {
     label: 'Ventas',
     items: [
-      { name: 'Historial de Ventas', href: null, active: null, icon: 'fa-arrow-trend-up' },
-      { name: 'Reportes de Ventas', href: null, active: null, icon: 'fa-chart-pie' },
+      { name: 'Ventas', href: route('admin.sales.create'), active: 'admin.sales.*', icon: 'fa-cash-register' },
     ],
   },
   {
     label: 'Relaciones',
     items: [
       { name: 'Clientes', href: route('admin.customers.index'), active: 'admin.customers.*', icon: 'fa-people-group' },
+      { name: 'Proveedores', href: route('admin.suppliers.index'), active: 'admin.suppliers.*', icon: 'fa-truck-fast' },
     ],
   },
+  ...(esAdmin.value ? [{
+    label: 'Administración',
+    items: [
+      { name: 'Usuarios', href: route('admin.users.index'), active: 'admin.users.*', icon: 'fa-user-shield' },
+      { name: 'Datos del Negocio', href: route('admin.settings.edit'), active: 'admin.settings.*', icon: 'fa-sliders' },
+      { name: 'Categorías y Marcas', href: route('admin.taxonomies.index'), active: 'admin.taxonomies.*', icon: 'fa-tags' },
+      { name: 'Avatares', href: route('admin.avatars.index'), active: 'admin.avatars.*', icon: 'fa-images' },
+    ],
+  }] : []),
   {
     label: 'Cuenta',
     items: [
-      { name: 'Configuración', href: null, active: null, icon: 'fa-sliders' },
-      { name: 'Perfil', href: null, active: null, icon: 'fa-circle-user' },
+      { name: 'Perfil', href: route('profile.edit'), active: 'profile.*', icon: 'fa-circle-user' },
     ],
   },
 ]);

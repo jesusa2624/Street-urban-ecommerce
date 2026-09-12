@@ -110,9 +110,11 @@ class ActivateAccountController extends Controller
             }
 
             if ($customer && $validated['skipVerification']) {
-                // Actualizar contraseña del cliente existente (sin contraseña)
+                // Activa un cliente que ya existía sin contraseña real (ej. registrado
+                // desde el admin durante una venta en tienda) — ahora sí puede loguearse.
                 $customer->update([
                     'password' => Hash::make($validated['password']),
+                    'email_verified_at' => now(),
                 ]);
             } else if (!$customer) {
                 // Crear nuevo cliente solo si no existe

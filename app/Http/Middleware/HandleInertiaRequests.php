@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\BusinessSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Middleware;
@@ -42,7 +43,13 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
+                'ventaId' => $request->session()->get('ventaId'),
             ],
+            // Compartido globalmente para que cualquier página (tienda o admin) pueda
+            // usar el nombre/contacto del negocio sin que cada controller lo pase a mano.
+            'business' => fn () => BusinessSetting::current()->only([
+                'name', 'email', 'phone', 'whatsapp', 'address', 'ruc', 'low_stock_threshold',
+            ]),
         ];
     }
 }

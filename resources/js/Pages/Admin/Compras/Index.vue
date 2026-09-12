@@ -1,4 +1,5 @@
 <template>
+  <Head title="Compras" />
   <AdminLayout>
     <template #breadcrumb>Compras</template>
     <template #header>Compras</template>
@@ -111,7 +112,7 @@
               </tr>
             </thead>
             <tbody>
-              <template v-for="v in variantesFiltradas" :key="v.id">
+              <template v-for="v in variantesPaginadas" :key="v.id">
                 <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                   <td class="py-3 px-4 text-gray-600">{{ v.categoria }}</td>
                   <td class="py-3 px-4 text-gray-600">{{ v.marca }}</td>
@@ -119,7 +120,7 @@
                   <td class="py-3 px-4 text-gray-600">{{ v.talla }}</td>
                   <td class="py-3 px-4">
                     <div class="flex items-center gap-2">
-                      <div class="w-5 h-5 rounded-full border border-gray-200" :style="{ backgroundColor: v.colorHex || '#e5e7eb' }"></div>
+                      <ColorSwatch :hex="v.colorHex" class="w-5 h-5 rounded-full border border-gray-200" />
                       <span class="text-gray-600">{{ v.color }}</span>
                     </div>
                   </td>
@@ -128,7 +129,7 @@
                       <span
                         :class="[
                           'text-xs font-bold px-2.5 py-1 rounded-full',
-                          v.stock === 0 ? 'bg-red-100 text-red-500' : v.stock < 5 ? 'bg-yellow-100 text-yellow-600' : 'bg-green-100 text-green-600',
+                          v.stock === 0 ? 'bg-red-100 text-red-500' : v.stock < umbralStockBajo.value ? 'bg-yellow-100 text-yellow-600' : 'bg-green-100 text-green-600',
                         ]"
                       >
                         {{ v.stock === 0 ? 'Sin stock' : v.stock }}
@@ -192,6 +193,8 @@
               </template>
             </tbody>
           </table>
+
+          <Pagination v-model="paginaActual" :total-items="variantesFiltradas.length" :per-page="perPage" />
         </div>
 
         <div v-else-if="variants.length === 0" class="bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 p-12 text-center">
@@ -216,10 +219,12 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import RegistrarCompraModal from './RegistrarCompraModal.vue';
-import { ref, computed } from 'vue';
-import { usePage, Link } from '@inertiajs/vue3';
+import { ref, computed, watch } from 'vue';
+import { Head, usePage, Link } from '@inertiajs/vue3';
 import SearchInput from '@/Components/Admin/SearchInput.vue';
 import SelectDropdown from '@/Components/Admin/SelectDropdown.vue';
+import Pagination from '@/Components/Admin/Pagination.vue';
+import ColorSwatch from '@/Components/Admin/ColorSwatch.vue';
 
 const props = defineProps({
   variants: Array,
@@ -229,6 +234,7 @@ const props = defineProps({
 });
 
 const page = usePage();
+const umbralStockBajo = computed(() => page.props.business?.low_stock_threshold ?? 5);
 const showModal = ref(false);
 const prefillData = ref(null);
 
@@ -243,6 +249,7 @@ const reabastecer = (variant) => {
     colorNombre: variant.color,
     precioCompra: variant.precioCompra,
     precioVenta: variant.precioVenta,
+    tienda: variant.ultimoProveedor,
   };
   showModal.value = true;
 };
@@ -256,12 +263,12 @@ const filtroTexto = ref('');
 const filtroCategoria = ref('');
 const filtroStock = ref('');
 
-const opcionesStock = [
+const opcionesStock = computed(() => [
   { value: '', label: 'Todo el stock' },
   { value: 'sin', label: 'Sin stock' },
-  { value: 'bajo', label: 'Stock bajo (< 5)' },
+  { value: 'bajo', label: `Stock bajo (< ${umbralStockBajo.value})` },
   { value: 'con', label: 'Con stock' },
-];
+]);
 
 const opcionesCategoria = computed(() => {
   const presentes = [...new Set(props.variants.map(v => v.categoria))].sort();
@@ -283,7 +290,7 @@ const variantesFiltradas = computed(() => {
     if (filtroCategoria.value && v.categoria !== filtroCategoria.value) return false;
 
     if (filtroStock.value === 'sin' && v.stock !== 0) return false;
-    if (filtroStock.value === 'bajo' && (v.stock === 0 || v.stock >= 5)) return false;
+    if (filtroStock.value === 'bajo' && (v.stock === 0 || v.stock >= umbralStockBajo.value)) return false;
     if (filtroStock.value === 'con' && v.stock === 0) return false;
 
     if (texto) {
@@ -293,6 +300,23 @@ const variantesFiltradas = computed(() => {
 
     return true;
   });
+});
+
+const perPage = 15;
+const paginaActual = ref(1);
+
+watch([filtroTexto, filtroCategoria, filtroStock], () => {
+  paginaActual.value = 1;
+});
+
+watch(() => variantesFiltradas.value.length, (total) => {
+  const totalPaginas = Math.max(1, Math.ceil(total / perPage));
+  if (paginaActual.value > totalPaginas) paginaActual.value = totalPaginas;
+});
+
+const variantesPaginadas = computed(() => {
+  const inicio = (paginaActual.value - 1) * perPage;
+  return variantesFiltradas.value.slice(inicio, inicio + perPage);
 });
 
 const expandedVariantId = ref(null);

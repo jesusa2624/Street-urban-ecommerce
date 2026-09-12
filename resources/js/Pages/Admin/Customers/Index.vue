@@ -1,133 +1,201 @@
 <template>
+  <Head title="Clientes" />
   <AdminLayout>
-    <template #header>Gestionar Clientes</template>
+    <template #breadcrumb>Clientes</template>
+    <template #header>Clientes</template>
 
-    <!-- Mensaje de éxito -->
-    <transition name="slide-down">
-      <div v-if="$page.props.flash?.success" class="mb-6 p-4 bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/30 text-green-400 rounded-xl flex items-center gap-3">
-        <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-        </svg>
-        <span>{{ $page.props.flash.success }}</span>
+    <div class="space-y-6">
+      <div v-if="page.props.flash?.success" class="bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 text-sm font-medium flex items-center gap-2">
+        <i class="fa-solid fa-circle-check"></i> {{ page.props.flash.success }}
       </div>
-    </transition>
 
-    <!-- Header con botón -->
-    <div class="flex justify-between items-center mb-8">
-      <div>
-        <h2 class="text-2xl font-bold text-white">Mis Clientes</h2>
-        <p class="text-gray-400 text-sm mt-1">Administra todos tus clientes registrados</p>
+      <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h3 class="text-lg font-bold text-gray-900">Clientes Registrados</h3>
+            <p class="text-xs text-gray-400">Cuentas con acceso a la tienda y clientes registrados en el mostrador</p>
+          </div>
+          <button
+            @click="showModal = true"
+            class="bg-[#ff8c42] hover:bg-[#ff7a24] text-white text-sm font-bold py-2.5 px-5 rounded-xl transition flex items-center gap-2"
+          >
+            <i class="fa-solid fa-plus text-xs"></i> Nuevo Cliente
+          </button>
+        </div>
+
+        <!-- Filtros -->
+        <div class="flex flex-wrap items-center gap-3 mb-5">
+          <SearchInput v-model="filtroTexto" placeholder="Buscar por nombre, email o teléfono..." class="w-full sm:w-72" />
+          <button
+            v-if="filtroTexto"
+            @click="filtroTexto = ''"
+            class="text-sm font-semibold text-gray-400 hover:text-gray-600 px-3 py-2"
+          >
+            <i class="fa-solid fa-xmark text-xs"></i> Limpiar
+          </button>
+        </div>
+
+        <div v-if="clientesFiltrados.length > 0" class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="border-b border-gray-200">
+              <tr>
+                <th class="text-left py-3 px-4 font-semibold text-gray-500">Cliente</th>
+                <th class="text-left py-3 px-4 font-semibold text-gray-500">Email</th>
+                <th class="text-left py-3 px-4 font-semibold text-gray-500">Teléfono</th>
+                <th class="text-center py-3 px-4 font-semibold text-gray-500">Cuenta</th>
+                <th class="text-center py-3 px-4 font-semibold text-gray-500">Registro</th>
+                <th class="text-center py-3 px-4 font-semibold text-gray-500">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="cliente in clientesPaginados" :key="cliente.id" class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                <td class="py-3 px-4 text-gray-900 font-medium">{{ cliente.name }}</td>
+                <td class="py-3 px-4 text-gray-600">{{ cliente.email || '—' }}</td>
+                <td class="py-3 px-4 text-gray-600">{{ cliente.phone || '—' }}</td>
+                <td class="py-3 px-4 text-center">
+                  <span
+                    :class="[
+                      'text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap',
+                      cliente.activa ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400',
+                    ]"
+                  >
+                    {{ cliente.activa ? 'Activa' : 'Solo registro' }}
+                  </span>
+                </td>
+                <td class="py-3 px-4 text-center text-gray-500">{{ cliente.registrado }}</td>
+                <td class="py-3 px-4">
+                  <div class="flex items-center justify-center gap-2">
+                    <button
+                      @click="verHistorial(cliente)"
+                      title="Historial de Compras"
+                      class="w-8 h-8 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-500 hover:text-purple-600 flex items-center justify-center transition-colors"
+                    >
+                      <i class="fa-solid fa-receipt text-xs"></i>
+                    </button>
+                    <Link
+                      :href="route('admin.customers.edit', cliente.id)"
+                      title="Editar"
+                      class="w-8 h-8 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-500 hover:text-blue-600 flex items-center justify-center transition-colors"
+                    >
+                      <i class="fa-solid fa-pen text-xs"></i>
+                    </Link>
+                    <button
+                      @click="eliminar(cliente)"
+                      title="Eliminar"
+                      class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-600 flex items-center justify-center transition-colors"
+                    >
+                      <i class="fa-solid fa-trash text-xs"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <Pagination v-model="paginaActual" :total-items="clientesFiltrados.length" :per-page="perPage" />
+        </div>
+
+        <div v-else-if="customers.length === 0" class="bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 p-12 text-center">
+          <i class="fa-solid fa-people-group text-4xl text-gray-300 mb-3"></i>
+          <p class="text-gray-500">Aún no hay clientes registrados.</p>
+        </div>
+
+        <div v-else class="bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 p-12 text-center">
+          <i class="fa-solid fa-filter-circle-xmark text-4xl text-gray-300 mb-3"></i>
+          <p class="text-gray-500">Ningún cliente coincide con tu búsqueda.</p>
+        </div>
       </div>
-      <Link
-        :href="route('admin.customers.create')"
-        class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-300 font-semibold flex items-center gap-2 group"
-      >
-        <svg class="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-        </svg>
-        Nuevo Cliente
-      </Link>
     </div>
 
-    <!-- Tabla -->
-    <div class="bg-gradient-to-b from-[#111111] to-[#0a0a0a] border border-gray-800/50 rounded-2xl shadow-2xl overflow-hidden">
-      <table class="w-full">
-        <thead>
-          <tr class="bg-gradient-to-r from-[#0f0f0f] to-[#0a0a0a] border-b border-gray-800/50">
-            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-widest">ID</th>
-            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-widest">Nombre</th>
-            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-widest">Email</th>
-            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-widest">Registro</th>
-            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-widest">Acciones</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-800/30">
-          <tr v-for="customer in customers.data" :key="customer.id" class="hover:bg-blue-600/5 transition duration-300 group">
-            <td class="px-6 py-4 text-sm text-gray-500 font-mono">{{ customer.id }}</td>
-            <td class="px-6 py-4 text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">{{ customer.name }}</td>
-            <td class="px-6 py-4 text-sm text-gray-400">{{ customer.email }}</td>
-            <td class="px-6 py-4 text-sm text-gray-500">
-              {{ formatDate(customer.created_at) }}
-            </td>
-            <td class="px-6 py-4 space-x-2 flex">
-              <Link
-                :href="route('admin.customers.edit', customer.id)"
-                class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-gradient-to-r from-amber-600/20 to-amber-500/10 text-amber-400 text-xs rounded-lg hover:from-amber-600/40 hover:to-amber-500/20 transition duration-200 font-semibold border border-amber-600/30 hover:border-amber-600/60"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                Editar
-              </Link>
-              <button
-                @click="deleteCustomer(customer.id)"
-                class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-gradient-to-r from-red-600/20 to-red-500/10 text-red-400 text-xs rounded-lg hover:from-red-600/40 hover:to-red-500/20 transition duration-200 font-semibold border border-red-600/30 hover:border-red-600/60"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Eliminar
-              </button>
-            </td>
-          </tr>
-          <tr v-if="customers.data.length === 0">
-            <td colspan="5" class="px-6 py-16 text-center">
-              <div class="space-y-3">
-                <svg class="w-12 h-12 text-gray-600 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                </svg>
-                <p class="text-gray-500 font-medium">No hay clientes registrados</p>
-                <p class="text-gray-600 text-sm">Crea tu primer cliente para comenzar</p>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <ConfirmModal
+      v-if="clientePendienteEliminar"
+      title="Eliminar Cliente"
+      :message="`¿Eliminar a ${clientePendienteEliminar.name}? Esta acción no se puede deshacer.`"
+      confirm-text="Sí, Eliminar"
+      cancel-text="Cancelar"
+      variant="danger"
+      :loading="eliminando"
+      @confirm="confirmarEliminacion"
+      @close="clientePendienteEliminar = null"
+    />
 
-    <!-- Paginación -->
-    <div v-if="customers.links" class="mt-6 flex justify-center gap-2">
-      <Link
-        v-for="link in customers.links"
-        :key="link.label"
-        :href="link.url || '#'"
-        :class="[
-          'px-3 py-2 rounded text-sm transition',
-          link.active
-            ? 'bg-blue-600 text-white'
-            : link.url
-              ? 'bg-gray-200 hover:bg-gray-300'
-              : 'bg-gray-100 text-gray-500 cursor-not-allowed',
-        ]"
-        v-html="link.label"
-      />
-    </div>
+    <RegistrarClienteModal v-if="showModal" @close="showModal = false" />
+
+    <HistorialClienteModal
+      v-if="clienteHistorial"
+      :cliente="clienteHistorial"
+      @close="clienteHistorial = null"
+    />
   </AdminLayout>
 </template>
 
 <script setup>
-import { usePage } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { Link, router } from '@inertiajs/vue3';
+import SearchInput from '@/Components/Admin/SearchInput.vue';
+import Pagination from '@/Components/Admin/Pagination.vue';
+import ConfirmModal from '@/Components/Admin/ConfirmModal.vue';
+import RegistrarClienteModal from './RegistrarClienteModal.vue';
+import HistorialClienteModal from './HistorialClienteModal.vue';
+import { ref, computed, watch } from 'vue';
 
-defineProps({
-  customers: Object,
+const showModal = ref(false);
+const clienteHistorial = ref(null);
+
+const verHistorial = (cliente) => {
+  clienteHistorial.value = cliente;
+};
+
+const props = defineProps({
+  customers: Array,
 });
 
 const page = usePage();
+const filtroTexto = ref('');
 
-const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('es-ES', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
+const clientesFiltrados = computed(() => {
+  const texto = filtroTexto.value.trim().toLowerCase();
+  if (!texto) return props.customers;
+
+  return props.customers.filter((c) =>
+    c.name.toLowerCase().includes(texto) ||
+    (c.email || '').toLowerCase().includes(texto) ||
+    (c.phone || '').toLowerCase().includes(texto)
+  );
+});
+
+const perPage = 15;
+const paginaActual = ref(1);
+
+watch(filtroTexto, () => {
+  paginaActual.value = 1;
+});
+
+watch(() => clientesFiltrados.value.length, (total) => {
+  const totalPaginas = Math.max(1, Math.ceil(total / perPage));
+  if (paginaActual.value > totalPaginas) paginaActual.value = totalPaginas;
+});
+
+const clientesPaginados = computed(() => {
+  const inicio = (paginaActual.value - 1) * perPage;
+  return clientesFiltrados.value.slice(inicio, inicio + perPage);
+});
+
+const clientePendienteEliminar = ref(null);
+const eliminando = ref(false);
+
+const eliminar = (cliente) => {
+  clientePendienteEliminar.value = cliente;
 };
 
-const deleteCustomer = (id) => {
-  if (confirm('¿Está seguro de que desea eliminar este cliente? Esta acción no se puede deshacer.')) {
-    router.delete(route('admin.customers.destroy', id));
-  }
+const confirmarEliminacion = () => {
+  eliminando.value = true;
+
+  router.delete(route('admin.customers.destroy', clientePendienteEliminar.value.id), {
+    onFinish: () => {
+      eliminando.value = false;
+      clientePendienteEliminar.value = null;
+    },
+  });
 };
 </script>

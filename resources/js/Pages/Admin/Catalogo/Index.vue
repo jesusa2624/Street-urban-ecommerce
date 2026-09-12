@@ -1,4 +1,5 @@
 <template>
+  <Head title="Catálogo" />
   <AdminLayout>
     <template #breadcrumb>Catálogo</template>
     <template #header>Catálogo de Productos</template>
@@ -47,6 +48,7 @@
                 <th class="text-left py-3 px-4 font-semibold text-gray-500">Categoría</th>
                 <th class="text-left py-3 px-4 font-semibold text-gray-500">Marca</th>
                 <th class="text-left py-3 px-4 font-semibold text-gray-500">Modelo</th>
+                <th class="text-left py-3 px-4 font-semibold text-gray-500">Tallas</th>
                 <th class="text-center py-3 px-4 font-semibold text-gray-500">Variantes</th>
                 <th class="text-center py-3 px-4 font-semibold text-gray-500">Stock Total</th>
                 <th class="text-right py-3 px-4 font-semibold text-gray-500">P.Venta</th>
@@ -54,23 +56,35 @@
               </tr>
             </thead>
             <tbody>
-              <template v-for="p in productosFiltrados" :key="p.id">
+              <template v-for="p in productosPaginados" :key="p.id">
                 <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                   <td class="py-3 px-4 text-gray-600">{{ p.categoria }}</td>
                   <td class="py-3 px-4 text-gray-600">{{ p.marca }}</td>
                   <td class="py-3 px-4 text-gray-900 font-medium">{{ p.nombre }}</td>
+                  <td class="py-3 px-4">
+                    <div v-if="p.tallas.length > 0" class="flex flex-wrap gap-1">
+                      <span
+                        v-for="talla in p.tallas"
+                        :key="talla"
+                        class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500"
+                      >
+                        {{ talla }}
+                      </span>
+                    </div>
+                    <span v-else class="text-xs text-gray-300">—</span>
+                  </td>
                   <td class="py-3 px-4 text-center">
                     <button
                       @click="toggleVariantes(p.id)"
                       class="inline-flex items-center gap-1.5 text-gray-600 hover:text-[#ff8c42] transition-colors"
-                      title="Ver variantes"
+                      title="Ver colores registrados"
                     >
-                      {{ p.variantes }}
+                      {{ p.variantes }} color{{ p.variantes === 1 ? '' : 'es' }}
                       <i :class="['fa-solid text-xs', expandedProductId === p.id ? 'fa-chevron-up' : 'fa-layer-group']"></i>
                     </button>
                   </td>
                   <td class="py-3 px-4 text-center">
-                    <span :class="['text-xs font-bold px-2.5 py-1 rounded-full', p.stock === 0 ? 'bg-red-100 text-red-500' : 'bg-green-100 text-green-600']">
+                    <span :class="['text-xs font-bold px-2.5 py-1 rounded-full', claseStock(p.stock)]">
                       {{ p.stock === 0 ? 'Sin stock' : p.stock }}
                     </span>
                   </td>
@@ -105,43 +119,71 @@
                 </tr>
 
                 <tr v-if="expandedProductId === p.id" class="bg-gray-50">
-                  <td colspan="7" class="px-6 py-4">
+                  <td colspan="8" class="px-6 py-4">
                     <div v-if="loadingVariantes" class="text-xs text-gray-400 py-2">Cargando variantes...</div>
                     <div v-else-if="(variantesCache[p.id] || []).length === 0" class="text-xs text-gray-400 py-2">
-                      Este modelo aún no tiene variantes (talla/color) registradas — se crean automáticamente al registrar una compra.
+                      Este modelo aún no tiene colores registrados — agrégalos desde el ícono de paleta.
                     </div>
-                    <table v-else class="w-full text-xs">
-                      <thead>
-                        <tr class="text-gray-400">
-                          <th class="text-left py-1.5 pr-4 font-semibold">Talla</th>
-                          <th class="text-left py-1.5 pr-4 font-semibold">Color</th>
-                          <th class="text-center py-1.5 pr-4 font-semibold">Stock</th>
-                          <th class="text-right py-1.5 font-semibold">Costo Ref.</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr v-for="v in variantesCache[p.id]" :key="v.id" class="border-t border-gray-100">
-                          <td class="py-2 pr-4 text-gray-900 font-medium">{{ v.talla }}</td>
-                          <td class="py-2 pr-4">
-                            <div class="flex items-center gap-1.5">
-                              <div class="w-3.5 h-3.5 rounded-full border border-gray-200" :style="{ backgroundColor: v.colorHex || '#e5e7eb' }"></div>
-                              <span class="text-gray-600">{{ v.color }}</span>
+                    <div v-else class="space-y-2">
+                      <div v-for="c in variantesCache[p.id]" :key="c.id" class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                        <button
+                          @click="expandedColorId = expandedColorId === c.id ? null : c.id"
+                          class="w-full flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors"
+                        >
+                          <div class="flex items-center gap-2 flex-wrap min-w-0">
+                            <ColorSwatch :hex="c.hex" class="w-3.5 h-3.5 rounded-full border border-gray-200 flex-shrink-0" />
+                            <span class="text-sm font-medium text-gray-800 flex-shrink-0">{{ c.nombre }}</span>
+                            <div v-if="c.tallas.length > 0" class="flex flex-wrap gap-1">
+                              <span
+                                v-for="t in c.tallas"
+                                :key="t.id"
+                                class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500"
+                              >
+                                {{ t.talla }}
+                              </span>
                             </div>
-                          </td>
-                          <td class="py-2 pr-4 text-center">
-                            <span :class="['text-xs font-bold px-2 py-0.5 rounded-full', v.stock === 0 ? 'bg-red-100 text-red-500' : 'bg-green-100 text-green-600']">
-                              {{ v.stock === 0 ? 'Sin stock' : v.stock }}
+                            <span v-else class="text-xs text-gray-400">Sin tallas</span>
+                          </div>
+                          <div class="flex items-center gap-3 flex-shrink-0">
+                            <span :class="['text-xs font-bold px-2.5 py-1 rounded-full', claseStock(c.stockTotal)]">
+                              {{ c.stockTotal === 0 ? 'Sin stock' : c.stockTotal }}
                             </span>
-                          </td>
-                          <td class="py-2 text-right text-gray-900">S/ {{ v.costo.toFixed(2) }}</td>
-                        </tr>
-                      </tbody>
-                    </table>
+                            <i :class="['fa-solid text-xs text-gray-400', expandedColorId === c.id ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
+                          </div>
+                        </button>
+
+                        <table v-if="expandedColorId === c.id" class="w-full text-xs border-t border-gray-100">
+                          <thead>
+                            <tr class="text-gray-400">
+                              <th class="text-left py-1.5 px-4 font-semibold">Talla</th>
+                              <th class="text-center py-1.5 px-4 font-semibold">Stock</th>
+                              <th class="text-right py-1.5 px-4 font-semibold">Costo Ref.</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr v-if="c.tallas.length === 0">
+                              <td colspan="3" class="py-2 px-4 text-gray-400">Sin tallas registradas — se crean al registrar una compra.</td>
+                            </tr>
+                            <tr v-for="t in c.tallas" :key="t.id" class="border-t border-gray-50">
+                              <td class="py-2 px-4 text-gray-900 font-medium">{{ t.talla }}</td>
+                              <td class="py-2 px-4 text-center">
+                                <span :class="['text-xs font-bold px-2 py-0.5 rounded-full', claseStock(t.stock)]">
+                                  {{ t.stock === 0 ? 'Sin stock' : t.stock }}
+                                </span>
+                              </td>
+                              <td class="py-2 px-4 text-right text-gray-900">S/ {{ t.costo.toFixed(2) }}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               </template>
             </tbody>
           </table>
+
+          <Pagination v-model="paginaActual" :total-items="productosFiltrados.length" :per-page="perPage" />
         </div>
 
         <div v-else-if="productos.length === 0" class="bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 p-12 text-center">
@@ -178,8 +220,10 @@ import RegistrarModeloModal from './RegistrarModeloModal.vue';
 import GestionarColoresModal from './GestionarColoresModal.vue';
 import SearchInput from '@/Components/Admin/SearchInput.vue';
 import SelectDropdown from '@/Components/Admin/SelectDropdown.vue';
-import { ref, computed } from 'vue';
-import { usePage, router } from '@inertiajs/vue3';
+import Pagination from '@/Components/Admin/Pagination.vue';
+import ColorSwatch from '@/Components/Admin/ColorSwatch.vue';
+import { ref, computed, watch } from 'vue';
+import { Head, usePage, router } from '@inertiajs/vue3';
 
 const props = defineProps({
   productos: Array,
@@ -188,6 +232,13 @@ const props = defineProps({
 });
 
 const page = usePage();
+const umbralStockBajo = computed(() => page.props.business?.low_stock_threshold ?? 5);
+
+const claseStock = (stock) => {
+  if (stock === 0) return 'bg-red-100 text-red-500';
+  if (stock < umbralStockBajo.value) return 'bg-yellow-100 text-yellow-600';
+  return 'bg-green-100 text-green-600';
+};
 
 const filtroTexto = ref('');
 const filtroCategoria = ref('');
@@ -212,6 +263,23 @@ const productosFiltrados = computed(() => {
     if (texto && !p.nombre.toLowerCase().includes(texto) && !p.marca.toLowerCase().includes(texto)) return false;
     return true;
   });
+});
+
+const perPage = 15;
+const paginaActual = ref(1);
+
+watch([filtroTexto, filtroCategoria, filtroMarca], () => {
+  paginaActual.value = 1;
+});
+
+watch(() => productosFiltrados.value.length, (total) => {
+  const totalPaginas = Math.max(1, Math.ceil(total / perPage));
+  if (paginaActual.value > totalPaginas) paginaActual.value = totalPaginas;
+});
+
+const productosPaginados = computed(() => {
+  const inicio = (paginaActual.value - 1) * perPage;
+  return productosFiltrados.value.slice(inicio, inicio + perPage);
 });
 
 const showModal = ref(false);
@@ -242,6 +310,7 @@ const cerrarColores = () => {
   productoColores.value = null;
   // Puede haber cambiado el color de alguna variante ya cargada en caché.
   variantesCache.value = {};
+  expandedColorId.value = null;
 };
 
 const eliminar = (producto) => {
@@ -250,10 +319,13 @@ const eliminar = (producto) => {
 };
 
 const expandedProductId = ref(null);
+const expandedColorId = ref(null);
 const variantesCache = ref({});
 const loadingVariantes = ref(false);
 
 const toggleVariantes = async (productId) => {
+  expandedColorId.value = null;
+
   if (expandedProductId.value === productId) {
     expandedProductId.value = null;
     return;
