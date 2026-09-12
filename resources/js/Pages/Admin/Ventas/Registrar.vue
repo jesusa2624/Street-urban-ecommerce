@@ -255,8 +255,16 @@ const props = defineProps({
 
 const page = usePage();
 
+// OJO: no usar Date().toISOString() para "hoy" — toISOString() siempre convierte a UTC,
+// así que de 7pm a 12am hora Perú (UTC-5) ya cuenta como "mañana" en UTC y la venta se
+// guarda con la fecha equivocada. Se arma la fecha con los componentes locales del navegador.
+const hoyLocal = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
 const ventaForm = ref({
-  fecha: new Date().toISOString().split('T')[0],
+  fecha: hoyLocal(),
   cliente: '',
   notas: '',
 });

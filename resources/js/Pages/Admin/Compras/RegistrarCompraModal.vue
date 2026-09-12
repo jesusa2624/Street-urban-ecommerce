@@ -22,8 +22,16 @@ const props = defineProps({
 
 const emit = defineEmits(['close']);
 
+// OJO: no usar Date().toISOString() para "hoy" — toISOString() siempre convierte a UTC,
+// así que de 7pm a 12am hora Perú (UTC-5) ya cuenta como "mañana" en UTC y la compra se
+// guarda con la fecha equivocada. Se arma la fecha con los componentes locales del navegador.
+const hoyLocal = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
 const compraForm = ref({
-  fecha: new Date().toISOString().split('T')[0],
+  fecha: hoyLocal(),
   tienda: '',
   factura: '',
   notas: '',
