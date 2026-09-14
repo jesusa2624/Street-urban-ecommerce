@@ -45,26 +45,23 @@ return new class extends Migration
             ]);
         }
 
-        // Todo en un solo ALTER: MySQL solo valida el estado final, así el índice del FK de
-        // product_id nunca se queda sin respaldo entre medio (el unique viejo lo cubría por ser
-        // la columna izquierda del compuesto, y el nuevo unique también lo cubre igual).
+        // Laravel genera un ALTER TABLE distinto por cada operación (no uno solo combinado),
+        // así que si se quita el unique viejo antes de tener otro índice que respalde la FK de
+        // product_id, MySQL truena con "needed in a foreign key constraint". Por eso se crea
+        // primero un índice temporal solo para eso, y se borra al final una vez que el unique
+        // nuevo ya cubre product_id (por ser su primera columna).
         Schema::table('product_variants', function (Blueprint $table) {
-            /*
-            $table->dropUnique('product_variants_product_id_size_color_unique');
-            $table->dropColumn(['color', 'color_hex']);
-            $table->unique(['product_id', 'size', 'product_color_id']);
-            */
-            
-            // La FK de product_id necesita un índice independiente.
             $table->index('product_id');
+        });
 
-            // Ahora sí podemos eliminar el unique antiguo.
+        Schema::table('product_variants', function (Blueprint $table) {
             $table->dropUnique('product_variants_product_id_size_color_unique');
-
             $table->dropColumn(['color', 'color_hex']);
-
-            // Nuevo unique.
             $table->unique(['product_id', 'size', 'product_color_id']);
+        });
+
+        Schema::table('product_variants', function (Blueprint $table) {
+            $table->dropIndex(['product_id']);
         });
     }
 
