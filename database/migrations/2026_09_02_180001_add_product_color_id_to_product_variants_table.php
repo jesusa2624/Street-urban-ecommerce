@@ -49,8 +49,21 @@ return new class extends Migration
         // product_id nunca se queda sin respaldo entre medio (el unique viejo lo cubría por ser
         // la columna izquierda del compuesto, y el nuevo unique también lo cubre igual).
         Schema::table('product_variants', function (Blueprint $table) {
+            /*
             $table->dropUnique('product_variants_product_id_size_color_unique');
             $table->dropColumn(['color', 'color_hex']);
+            $table->unique(['product_id', 'size', 'product_color_id']);
+            */
+            
+            // La FK de product_id necesita un índice independiente.
+            $table->index('product_id');
+
+            // Ahora sí podemos eliminar el unique antiguo.
+            $table->dropUnique('product_variants_product_id_size_color_unique');
+
+            $table->dropColumn(['color', 'color_hex']);
+
+            // Nuevo unique.
             $table->unique(['product_id', 'size', 'product_color_id']);
         });
     }
