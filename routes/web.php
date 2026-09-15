@@ -137,4 +137,17 @@ Route::post('/auth/logout', [LogoutController::class, 'logout'])->name('auth.log
 Route::get('/activate-account', [ActivateAccountController::class, 'show'])->name('activate-account.show');
 Route::post('/api/auth/activate-account', [ActivateAccountController::class, 'store'])->name('activate-account.store');
 
+// Rutas sociales
+Route::get('/instagram', function () {
+    return redirect()->away('https://instagram.com/');
+})->name('social.instagram');
+
+Route::get('/x-twitter', function () {
+    return redirect()->away('https://x.com/');
+})->name('social.twitter');
+
+Route::get('/facebook', function () {
+    return redirect()->away('https://facebook.com/');
+})->name('social.facebook');
+
 require __DIR__.'/auth.php';

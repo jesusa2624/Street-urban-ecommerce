@@ -19,8 +19,20 @@ const business = computed(() => page.props.business);
           Llevamos la cultura urbana a otro nivel. Calidad premium, diseño disruptivo y la esencia de la calle en cada prenda.
         </p>
         <div class="flex gap-4">
-          <a href="#" class="text-gray-400 hover:text-white transition-colors"><span class="sr-only">Instagram</span><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.049 1.265.059 2.156.059 4.849 0 2.693-.01 3.584-.059 4.849-.07 3.252-1.691 4.771-4.919 4.919-1.265.049-2.156.059-4.849.059-2.693 0-3.584-.01-4.849-.059-3.252-.148-4.771-1.691-4.919-4.919-.049-1.265-.059-2.156-.059-4.849 0-2.693.01-3.584.059-4.849.07-3.252 1.691-4.771 4.919-4.919 1.265-.049 2.156-.059 4.849-.059zM12 0C8.741 0 8.333 0.012 7.053 0.07 3.73 0.148 2.19 1.691 2.042 4.919C2.01 5.833 1.98 6.747 1.98 12.667c0 5.92 0.02 6.834 0.042 7.747 0.07 3.252 1.691 4.771 4.919 4.919 1.265.049 2.156.059 4.849.059 2.693 0 3.584-.01-4.849-.059 3.252-.148 4.771-1.691 4.919-4.919 1.265-.049 2.156-.059 4.849-.059 2.693 0 3.584-.01-4.849-.059 3.252-.148 4.771-1.691 4.919-4.919 1.265-.049 2.156-.059 4.849-.059z"/></svg></a>
-          <a href="#" class="text-gray-400 hover:text-white transition-colors"><span class="sr-only">Twitter</span><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23 3a10.9 10.9 0 0 1-2.05 6.458C19.5 8.92 19 9.5 18.5 10h-4.5V4.5a2.5 2.5 0 0 0-2.5-2.5 2.5 2.5 0 0 0-2.5 2.5V10h-4.5C5.5 10 5 9.5 4.5 8.92 4.05 8.458 3 3a10.9 10.9 0 0 1 10 0z"/></svg></a>
+          <a :href="route('social.instagram')" class="text-gray-400 hover:text-white transition-colors" target="_blank">
+            <span class="sr-only">Instagram</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 512 512">
+              <!-- Font Awesome Free v7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc. -->
+              <path d="M224.3 141a115 115 0 1 0 -.6 230 115 115 0 1 0 .6-230zm-.6 40.4a74.6 74.6 0 1 1 .6 149.2 74.6 74.6 0 1 1 -.6-149.2zm93.4-45.1a26.8 26.8 0 1 1 53.6 0 26.8 26.8 0 1 1 -53.6 0zm129.7 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM399 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"/>
+            </svg>
+          </a>
+          <a :href="route('social.twitter')" class="text-gray-400 hover:text-white transition-colors" target="_blank">
+            <span class="sr-only">X (Twitter)</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 448 512">
+              <!-- Font Awesome Free v7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc. -->
+              <path d="M357.2 48L427.8 48 273.6 224.2 455 464 313 464 201.7 318.6 74.5 464 3.8 464 168.7 275.5-5.2 48 140.4 48 240.9 180.9 357.2 48zM332.4 421.8l39.1 0-252.4-333.8-42 0 255.3 333.8z"/>
+            </svg>
+          </a>
         </div>
       </div>
 
