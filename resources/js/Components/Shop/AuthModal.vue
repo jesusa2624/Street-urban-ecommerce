@@ -288,9 +288,9 @@ const closeAndReset = () => {
               />
               <label for="terms" class="text-sm text-gray-300 cursor-pointer leading-relaxed">
                 He leído y acepto los
-                <a href="#" class="text-white underline font-semibold hover:text-gray-200">Términos y Condiciones</a>
+                <a :href="route('shop.terminos')" class="text-white underline font-semibold hover:text-gray-200">Términos y Condiciones</a>
                 y la
-                <a href="#" class="text-white underline font-semibold hover:text-gray-200">Política de Privacidad</a>
+                <a :href="route('shop.privacidad')" class="text-white underline font-semibold hover:text-gray-200">Política de Privacidad</a>
                 <span class="text-red-400">*</span>
               </label>
             </div>

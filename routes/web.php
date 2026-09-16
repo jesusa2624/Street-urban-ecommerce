@@ -6,6 +6,7 @@ use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\DataRegisterController;
 use App\Http\Controllers\Shop\CheckoutValidateController;
 use App\Http\Controllers\Shop\ContactController;
+use App\Http\Controllers\Shop\ComplaintController;
 use App\Http\Controllers\Shop\AboutController;
 use App\Http\Controllers\Shop\WishlistController;
 use Illuminate\Foundation\Application;
@@ -114,9 +115,10 @@ Route::name('shop.')->group(function () {
   Route::get('/cambios-y-devoluciones', function () {
     return Inertia::render('Shop/Legal/CambiosDevoluciones');
   })->name('cambios');
-  Route::get('/libro-de-reclamaciones', function () {
-    return Inertia::render('Shop/Legal/Reclamaciones');
-  })->name('reclamaciones');
+  Route::get('/libro-de-reclamaciones', [ComplaintController::class, 'index'])->name('reclamaciones');
+  Route::post('/libro-de-reclamaciones', [ComplaintController::class, 'store'])
+    ->middleware('throttle:5,10')
+    ->name('reclamaciones.store');
 });
 
 Route::middleware('auth')->group(function () {

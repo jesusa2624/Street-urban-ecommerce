@@ -43,6 +43,7 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
+                'complaint_number' => $request->session()->get('complaint_number'),
                 'ventaId' => $request->session()->get('ventaId'),
             ],
             // Compartido globalmente para que cualquier página (tienda o admin) pueda

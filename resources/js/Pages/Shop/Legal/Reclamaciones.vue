@@ -1,6 +1,6 @@
 <script setup>
-import { ref } from 'vue';
-import { Head } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { Head, useForm, usePage } from '@inertiajs/vue3';
 import ShopLayout from '@/Layouts/Shop/ShopLayout.vue';
 import ArticleLayout from '@/Layouts/Shop/ArticleLayout.vue';
 
@@ -12,28 +12,33 @@ const curDate = now.toLocaleDateString('es-PE', {
   day: 'numeric'
 });
 
-const form = ref({
-  claimantName: "",
-  claimantAddress: "",
-  claimantNationalId: "",
-  claimantEmail: "",
-  claimantPhone: "",
+const page = usePage();
 
-  purchasedItem: "",
-  claimedAmount: null,
+const form = useForm({
+  claimant_name: '',
+  claimant_address: '',
+  claimant_national_id: '',
+  claimant_email: '',
+  claimant_phone: '',
 
-  claimType: "Reclamo",
-  claimDetails: "",
-  claimRequest: "",
+  purchased_item: '',
+  claimed_amount: null,
 
-  acceptPrivacy: false,
+  claim_type: 'Reclamo',
+  claim_details: '',
+  claim_request: '',
+
+  accept_privacy: false,
 });
 
-const successMessage = ref('');
+const success_message = computed(() => page.props.flash?.success);
+const complaint_number = computed(() => page.props.flash?.complaint_number);
 
 const submitForm = () => {
-  // Tarea: añadir la lógica para enviar el formulario al backend
-  successMessage.value = 'Gracias por contactarnos. Te responderemos pronto.';
+  form.post(route('shop.reclamaciones.store'), {
+    preserveScroll: true,
+    onSuccess: () => form.reset(),
+  });
 };
 </script>
 
@@ -85,48 +90,54 @@ const submitForm = () => {
           <h2>1. Identificación del consumidor reclamante</h2>
 
           <div>
-            <label for="claimantName" class="block text-sm uppercase tracking-widest text-gray-400 mb-2">
+            <label for="claimant_name" class="block text-sm uppercase tracking-widest text-gray-400 mb-2">
               Nombres y apellidos completos
             </label>
 
-            <input id="claimantName" v-model="form.claimantName" type="text" required
+            <input id="claimant_name" v-model="form.claimant_name" type="text" required
               class="w-full bg-[#0a0a0a] border border-gray-800 p-4 focus:border-white outline-none" />
+            <p v-if="form.errors.claimant_name" class="mt-2 text-sm text-red-400">{{ form.errors.claimant_name }}</p>
           </div>
 
           <div>
-            <label for="claimantAddress" class="block text-sm uppercase tracking-widest text-gray-400 mb-2">
+            <label for="claimant_address" class="block text-sm uppercase tracking-widest text-gray-400 mb-2">
               Domicilio
             </label>
 
-            <input id="claimantAddress" v-model="form.claimantAddress" type="text" required
+            <input id="claimant_address" v-model="form.claimant_address" type="text" required
               class="w-full bg-[#0a0a0a] border border-gray-800 p-4 focus:border-white outline-none" />
+            <p v-if="form.errors.claimant_address" class="mt-2 text-sm text-red-400">{{ form.errors.claimant_address }}</p>
           </div>
 
           <div>
-            <label for="claimantNationalId" class="block text-sm uppercase tracking-widest text-gray-400 mb-2">
+            <label for="claimant_national_id" class="block text-sm uppercase tracking-widest text-gray-400 mb-2">
               Documento de identidad
             </label>
 
-            <input id="claimantNationalId" v-model="form.claimantNationalId" type="text" required
+            <input id="claimant_national_id" v-model="form.claimant_national_id" type="text" required
+              @input="form.claimant_national_id = form.claimant_national_id.replace(/\s/g, '')"
               class="w-full bg-[#0a0a0a] border border-gray-800 p-4 focus:border-white outline-none" />
+            <p v-if="form.errors.claimant_national_id" class="mt-2 text-sm text-red-400">{{ form.errors.claimant_national_id }}</p>
           </div>
 
           <div>
-            <label for="claimantEmail" class="block text-sm uppercase tracking-widest text-gray-400 mb-2">
+            <label for="claimant_email" class="block text-sm uppercase tracking-widest text-gray-400 mb-2">
               Correo electrónico
             </label>
 
-            <input id="claimantEmail" v-model="form.claimantEmail" type="email" required
+            <input id="claimant_email" v-model="form.claimant_email" type="email" required
               class="w-full bg-[#0a0a0a] border border-gray-800 p-4 focus:border-white outline-none" />
+            <p v-if="form.errors.claimant_email" class="mt-2 text-sm text-red-400">{{ form.errors.claimant_email }}</p>
           </div>
 
           <div>
-            <label for="claimantPhone" class="block text-sm uppercase tracking-widest text-gray-400 mb-2">
+            <label for="claimant_phone" class="block text-sm uppercase tracking-widest text-gray-400 mb-2">
               Teléfono
             </label>
 
-            <input id="claimantPhone" v-model="form.claimantPhone" type="tel"
+            <input id="claimant_phone" v-model="form.claimant_phone" type="tel"
               class="w-full bg-[#0a0a0a] border border-gray-800 p-4 focus:border-white outline-none" />
+            <p v-if="form.errors.claimant_phone" class="mt-2 text-sm text-red-400">{{ form.errors.claimant_phone }}</p>
           </div>
         </section>
 
@@ -135,23 +146,26 @@ const submitForm = () => {
           <h2>2. Identificación del bien contratado</h2>
 
           <div>
-            <label for="purchasedItem" class="block text-sm uppercase tracking-widest text-gray-400 mb-2">
+            <label for="purchased_item" class="block text-sm uppercase tracking-widest text-gray-400 mb-2">
               Identificación del bien adquirido
             </label>
 
-            <input id="purchasedItem" v-model="form.purchasedItem" type="text" required
+            <input id="purchased_item" v-model="form.purchased_item" type="text" required
               placeholder="Ej.: Pantalón hombre marca Diskovish talla 32"
               class="w-full bg-[#0a0a0a] border border-gray-800 p-4 focus:border-white outline-none" />
+            <p v-if="form.errors.purchased_item" class="mt-2 text-sm text-red-400">{{ form.errors.purchased_item }}</p>
           </div>
 
           <div>
-            <label for="claimedAmount" class="block text-sm uppercase tracking-widest text-gray-400 mb-2">
+            <label for="claimed_amount" class="block text-sm uppercase tracking-widest text-gray-400 mb-2">
               Monto a reclamar (S/)
             </label>
 
-            <input id="claimedAmount" v-model="form.claimedAmount" type="number" min="0" step="0.01" required
+            <input id="claimed_amount" v-model="form.claimed_amount" type="number" min="0" step="0.01"
               placeholder="0.00"
               class="w-full bg-[#0a0a0a] border border-gray-800 p-4 focus:border-white outline-none" />
+            <p class="mt-2 text-xs text-gray-500">Puedes indicar 0.00 si no corresponde un monto económico.</p>
+            <p v-if="form.errors.claimed_amount" class="mt-2 text-sm text-red-400">{{ form.errors.claimed_amount }}</p>
           </div>
         </section>
 
@@ -177,39 +191,41 @@ const submitForm = () => {
 
             <div class="flex gap-6">
               <label class="flex items-center gap-2 cursor-pointer">
-                <input v-model="form.claimType" type="radio" value="Queja" required />
+                <input v-model="form.claim_type" type="radio" value="Queja" required />
                 <span>Queja</span>
               </label>
 
               <label class="flex items-center gap-2 cursor-pointer">
-                <input v-model="form.claimType" type="radio" value="Reclamo" />
+                <input v-model="form.claim_type" type="radio" value="Reclamo" />
                 <span>Reclamo</span>
               </label>
             </div>
           </div>
 
           <div>
-            <label for="claimDetails" class="block text-sm uppercase tracking-widest text-gray-400 mb-2">
+            <label for="claim_details" class="block text-sm uppercase tracking-widest text-gray-400 mb-2">
               Detalle
             </label>
 
-            <textarea id="claimDetails" v-model="form.claimDetails" rows="5" required
+            <textarea id="claim_details" v-model="form.claim_details" rows="5" required
               class="w-full bg-[#0a0a0a] border border-gray-800 p-4 focus:border-white outline-none resize-none"></textarea>
+            <p v-if="form.errors.claim_details" class="mt-2 text-sm text-red-400">{{ form.errors.claim_details }}</p>
           </div>
 
           <div>
-            <label for="claimRequest" class="block text-sm uppercase tracking-widest text-gray-400 mb-2">
+            <label for="claim_request" class="block text-sm uppercase tracking-widest text-gray-400 mb-2">
               Pedido
             </label>
 
-            <textarea id="claimRequest" v-model="form.claimRequest" rows="5" required
+            <textarea id="claim_request" v-model="form.claim_request" rows="5" required
               class="w-full bg-[#0a0a0a] border border-gray-800 p-4 focus:border-white outline-none resize-none"></textarea>
+            <p v-if="form.errors.claim_request" class="mt-2 text-sm text-red-400">{{ form.errors.claim_request }}</p>
           </div>
         </section>
 
         <!-- Aceptación -->
         <div class="flex items-start gap-3">
-          <input id="privacy" v-model="form.acceptPrivacy" type="checkbox" required class="mt-1" />
+          <input id="privacy" v-model="form.accept_privacy" type="checkbox" required class="mt-1" />
 
           <label for="privacy" class="leading-relaxed text-gray-400">
             Autorizo que
@@ -219,20 +235,22 @@ const submitForm = () => {
           </label>
         </div>
 
-        <!-- Cloudflare Turnstile -->
-        <div id="turnstile-container"></div>
+        <p v-if="form.errors.accept_privacy" class="text-sm text-red-400">{{ form.errors.accept_privacy }}</p>
 
-        <button type="submit"
+        <button type="submit" :disabled="form.processing"
           class="w-full py-4 bg-white text-black font-black uppercase tracking-widest hover:bg-gray-200 transition-all">
-          Enviar reclamación
+          {{ form.processing ? 'Enviando...' : 'Enviar reclamación' }}
         </button>
       </form>
 
       <div
-        v-if="successMessage"
+        v-if="success_message"
         class="mt-6 p-4 border border-gray-800 bg-[#0a0a0a] text-gray-300 text-sm"
       >
-        {{ successMessage }}
+        <p>{{ success_message }}</p>
+        <p v-if="complaint_number" class="mt-2 font-bold text-white">
+          Número de registro: {{ complaint_number }}
+        </p>
       </div>
     </ArticleLayout>
   </ShopLayout>
