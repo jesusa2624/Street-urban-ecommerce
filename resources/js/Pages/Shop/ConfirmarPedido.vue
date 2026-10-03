@@ -1,11 +1,23 @@
 <script setup>
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import { ref, onMounted, computed } from 'vue';
+import axios from 'axios';
 import ShopLayout from '@/Layouts/Shop/ShopLayout.vue';
 import TwoColsLayout from '@/Layouts/Shop/TwoColsLayout.vue';
+import { getItems, saveItems, validateGuestCart, hydrateCustomerCart } from '@/cart';
 
 const compraData = ref(null);
 const carritoItems = ref([]);
+const page = usePage();
+const processing = ref(false);
+const error = ref('');
+const success = ref(null);
+const isCustomer = computed(() => page.props.auth?.type === 'customer');
+
+const guestPayloadItems = () => getItems().map(item => ({
+  variant_id: Number(item.variantId ?? item.variant_id),
+  quantity: Number(item.cantidad ?? item.quantity),
+}));
 
 // Calculamos el total de forma reactiva
 const totalCarrito = computed(() => {
@@ -34,7 +46,38 @@ onMounted(() => {
 });
 
 const procesarPago = async () => {
-  alert("Procesando pago con los datos recuperados...");
+  processing.value = true;
+  error.value = '';
+
+  try {
+    const { data } = await axios.post('/api/cart/confirm', {
+      ...(isCustomer.value ? {} : { items: guestPayloadItems() }),
+      ...(compraData.value || {}),
+    });
+
+    success.value = data;
+    saveItems([]);
+    carritoItems.value = [];
+    localStorage.removeItem('checkout_token');
+    localStorage.removeItem('checkout_details');
+  } catch (exception) {
+    if (exception.response?.status === 409) {
+      error.value = exception.response.data.message;
+      await refreshCart();
+    } else {
+      error.value = exception.response?.data?.message || 'No se pudo confirmar el pedido.';
+    }
+  } finally {
+    processing.value = false;
+  }
+};
+
+const refreshCart = async () => {
+  const result = isCustomer.value
+    ? await hydrateCustomerCart(page.props.auth.user.id)
+    : await validateGuestCart();
+
+  carritoItems.value = result.items || [];
 };
 </script>
 
@@ -67,6 +110,11 @@ const procesarPago = async () => {
         <h1 class="text-3xl font-black uppercase tracking-tighter border-b border-gray-800 pb-4">
           Resumen de validación
         </h1>
+
+        <div v-if="error" class="bg-red-950/40 border border-red-800 text-red-200 p-4 rounded-lg">{{ error }}</div>
+        <div v-if="success" class="bg-green-950/40 border border-green-800 text-green-200 p-4 rounded-lg">
+          {{ success.message }} Número de venta: {{ success.sale_number }}.
+        </div>
 
         <section class="bg-gray-900 p-6 rounded-lg border border-gray-800">
           <h2 class="text-xl font-bold mb-4">Datos del comprador</h2>
@@ -101,9 +149,9 @@ const procesarPago = async () => {
 
       <template #right-sidebar>
         <h2 class="text-xl font-bold mb-6">Confirmación</h2>
-        <button @click="procesarPago"
+        <button @click="procesarPago" :disabled="processing || success || carritoItems.length === 0"
           class="w-full py-4 font-black uppercase tracking-widest transition-all rounded-lg bg-street-orange-600 text-black hover:bg-street-orange-300">
-          Confirmar y Pagar
+          {{ processing ? 'Confirmando...' : (success ? 'Pedido confirmado' : 'Confirmar pedido') }}
         </button>
         <p class="text-xs text-gray-500 mt-4 text-center">
           Al confirmar, aceptas nuestros <Link :href="route('shop.terminos')">Términos y condiciones</Link> y nuestra <Link :href="route('shop.privacidad')">Política de privacidad</Link>.

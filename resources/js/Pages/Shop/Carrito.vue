@@ -1,35 +1,64 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import ShopLayout from '@/Layouts/Shop/ShopLayout.vue';
-import { getItems, setQuantity, removeItem as removeCartItem } from '@/cart';
+import { getItems, setQuantity, removeItem as removeCartItem, validateGuestCart, hydrateCustomerCart } from '@/cart';
 import { toggle as toggleWishlistItem } from '@/wishlist';
 
 const page = usePage();
-const isLoggedIn = computed(() => !!page.props.auth?.user);
+const isLoggedIn = computed(() => page.props.auth?.type === 'customer');
 
 const cartItems = ref([]);
 const movidoAFavoritos = ref(null);
+const cartSummary = ref({ subtotal: 0, tax: 0, shipping: 0, total: 0, total_items: 0 });
+const cartErrors = ref([]);
+const busy = ref(false);
+
+window.__streetUrbanCustomerId = isLoggedIn.value ? page.props.auth.user.id : null;
 
 const IGV = 0.18;
 
 // Calcula total y subtotal
-const subtotal = computed(() => {
-  return cartItems.value.reduce((acc, item) => acc + (item.price * item.cantidad), 0);
-});
+const subtotal = computed(() => Number(cartSummary.value.subtotal || 0));
 
-const igvIncluido = computed(() => subtotal.value - (subtotal.value / (1 + IGV)));
+const igvIncluido = computed(() => Number(cartSummary.value.tax || 0));
+
+const refreshFromServer = async () => {
+  busy.value = true;
+
+  try {
+    const result = isLoggedIn.value
+      ? await hydrateCustomerCart(page.props.auth.user.id)
+      : await validateGuestCart();
+
+    cartItems.value = getItems();
+    cartSummary.value = result.summary || cartSummary.value;
+    cartErrors.value = result.errors || [];
+  } catch {
+    cartErrors.value = [{ message: 'No se pudo validar el carrito. Inténtalo nuevamente.' }];
+  } finally {
+    busy.value = false;
+  }
+};
 
 // Quita elementos del carrito
-const removeItem = (id) => {
-  removeCartItem(id);
+const removeItem = async (id) => {
+  busy.value = true;
+  const result = await removeCartItem(id);
   cartItems.value = getItems();
+  cartSummary.value = result?.summary || cartSummary.value;
+  cartErrors.value = result?.errors || [];
+  busy.value = false;
 };
 
 // Actualiza la cantidad de un elemento a un valor absoluto (selector)
-const changeQuantity = (id, cantidad) => {
-  setQuantity(id, Number(cantidad));
+const changeQuantity = async (id, cantidad) => {
+  busy.value = true;
+  const result = await setQuantity(id, Number(cantidad));
   cartItems.value = getItems();
+  cartSummary.value = result?.summary || cartSummary.value;
+  cartErrors.value = result?.errors || [];
+  busy.value = false;
 };
 
 // Mueve un producto del carrito a la lista de deseos
@@ -52,9 +81,13 @@ const moverAFavoritos = async (item) => {
 // Comprueba si no hay elementos en el carrito
 const isCartEmpty = computed(() => cartItems.value.length === 0);
 
-onMounted(() => {
-  cartItems.value = getItems();
-});
+const handleCartError = (event) => {
+  cartErrors.value = [{ message: event.detail }];
+};
+
+onMounted(refreshFromServer);
+onMounted(() => window.addEventListener('cart-error', handleCartError));
+onUnmounted(() => window.removeEventListener('cart-error', handleCartError));
 </script>
 
 <template>
@@ -82,6 +115,14 @@ onMounted(() => {
 
     <!-- Contenido en dos columnas -->
     <section class="px-4 md:px-8 lg:px-16 max-w-[1400px] mx-auto pb-16">
+      <div v-if="cartErrors.length" class="mb-6 space-y-2">
+        <div v-for="(error, index) in cartErrors" :key="`${error.variant_id || 'cart'}-${index}`" class="rounded-xl border border-red-900/50 bg-red-950/30 px-4 py-3 text-sm text-red-200">
+          {{ error.message }}
+        </div>
+      </div>
+
+      <div v-if="busy" class="mb-6 text-sm text-gray-400">Validando disponibilidad y precios...</div>
+
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
 
         <!-- Productos del carrito -->
@@ -127,7 +168,7 @@ onMounted(() => {
                       @change="changeQuantity(item.id, $event.target.value)"
                       class="appearance-none w-[4.5rem] bg-[#1f1f1f] border border-gray-700 rounded-lg pl-4 pr-8 py-2.5 text-sm font-semibold text-white focus:outline-none focus:border-[#ff8c42] hover:border-gray-500 transition-colors cursor-pointer"
                     >
-                      <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
+                      <option v-for="n in Math.max(1, item.stock || 1)" :key="n" :value="n">{{ n }}</option>
                     </select>
                     <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[9px] text-gray-500 pointer-events-none"></i>
                   </div>
@@ -141,7 +182,7 @@ onMounted(() => {
                     >
                       <i :class="movidoAFavoritos === item.id ? 'fa-solid fa-heart text-[#ff8c42]' : 'fa-regular fa-heart'"></i>
                     </button>
-                    <p class="font-mono font-black text-lg tabular-nums">S/ {{ (item.price * item.cantidad).toFixed(2) }}</p>
+                    <p class="font-mono font-black text-lg tabular-nums">S/ {{ Number(item.subtotal || item.price * item.cantidad).toFixed(2) }}</p>
                   </div>
                 </div>
               </div>

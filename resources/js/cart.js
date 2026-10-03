@@ -1,81 +1,205 @@
-const CART_KEY = 'shopping_cart';
+import axios from 'axios';
 
-window.dispatchEvent(new Event('cart-updated'));
+const CART_KEY = 'shopping_cart';
+const CART_VERSION = 2;
+
+function dispatchCartUpdated() {
+  window.dispatchEvent(new Event('cart-updated'));
+}
+
+function readRawItems() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+    return Array.isArray(stored) ? stored : [];
+  } catch {
+    return [];
+  }
+}
+
+function normalizeItem(item) {
+  const variantId = Number(item?.variantId ?? item?.variant_id ?? 0);
+  const quantity = Number(item?.cantidad ?? item?.quantity ?? 0);
+
+  if (!variantId || quantity < 1) return null;
+
+  return {
+    ...item,
+    variantId,
+    cantidad: Math.floor(quantity),
+  };
+}
 
 export function getItems() {
-  return JSON.parse(localStorage.getItem(CART_KEY) || '[]');
-}
+  const rawItems = readRawItems();
+  const items = rawItems.map(normalizeItem).filter(Boolean);
 
-export function saveItems(items) {
-  localStorage.setItem(CART_KEY, JSON.stringify(items));
-}
-
-// Cada línea del carrito se identifica por producto + color + talla, no solo por el
-// producto: dos colores (o dos tallas) del mismo modelo pueden tener precio y stock
-// distintos, así que no pueden mezclarse en una sola línea.
-export function add(product) {
-  const items = getItems();
-  const productId = product.productId ?? product.id;
-  const lineId = (product.colorNombre || product.talla)
-    ? `${productId}::${product.colorNombre || 'x'}::${product.talla || 'x'}`
-    : `${productId}`;
-
-  const existing = items.find(item => item.id === lineId);
-
-  if (existing) {
-    existing.cantidad += product.cantidad || 1;
-  } else {
-    items.push({
-      id: lineId,
-      productId,
-      name: product.name,
-      price: product.price,
-      image: product.image,
-      colorId: product.colorId || null,
-      colorNombre: product.colorNombre || null,
-      talla: product.talla || null,
-      cantidad: product.cantidad || 1
-    });
+  if (JSON.stringify(items) !== JSON.stringify(rawItems)) {
+    saveItems(items, false);
   }
 
+  return items;
+}
+
+export function saveItems(items, notify = true) {
+  localStorage.setItem(CART_KEY, JSON.stringify(items));
+  localStorage.setItem(`${CART_KEY}_version`, String(CART_VERSION));
+  if (notify) dispatchCartUpdated();
+}
+
+function apiPayload(items) {
+  return {
+    items: items.map(item => ({
+      variant_id: Number(item.variantId),
+      quantity: Number(item.cantidad),
+    })),
+  };
+}
+
+function mapServerItem(item) {
+  return {
+    id: `variant:${item.variant_id}`,
+    variantId: item.variant_id,
+    productId: item.product_id,
+    name: item.name,
+    price: Number(item.unit_price),
+    image: item.image,
+    colorId: item.color_id,
+    colorNombre: item.color,
+    talla: item.size,
+    cantidad: Number(item.quantity),
+    stock: Number(item.available_stock),
+    subtotal: Number(item.subtotal),
+  };
+}
+
+function saveServerPayload(payload) {
+  const errorsByVariant = new Map(
+    (payload.errors || []).map(error => [Number(error.variant_id), error]),
+  );
+
+  const items = (payload.items || []).map(item => {
+    const mapped = mapServerItem(item);
+    const error = errorsByVariant.get(Number(item.variant_id));
+
+    if (error?.available_stock !== undefined) {
+      mapped.cantidad = Math.min(mapped.cantidad, Number(error.available_stock));
+      mapped.subtotal = Number((mapped.price * mapped.cantidad).toFixed(2));
+    }
+
+    return mapped;
+  }).filter(item => item.cantidad > 0);
+
   saveItems(items);
-  window.dispatchEvent(new Event('cart-updated'));
+
+  return {
+    ...payload,
+    items,
+  };
 }
 
 export function totalItems() {
   return getItems().reduce((total, item) => total + item.cantidad, 0);
 }
 
-export function updateQuantity(productId, delta) {
+export async function validateGuestCart() {
   const items = getItems();
-  const item = items.find(i => i.id === productId);
 
-  if (item) {
-    item.cantidad += delta;
-    // Si la cantidad llega a 0 o menos, eliminamos el producto
-    if (item.cantidad <= 0) {
-      const filtered = items.filter(i => i.id !== productId);
-      saveItems(filtered);
-    } else {
-      saveItems(items);
-    }
-    window.dispatchEvent(new Event('cart-updated'));
+  if (!items.length) {
+    return {
+      valid: true,
+      items: [],
+      errors: [],
+      summary: { subtotal: 0, tax: 0, shipping: 0, total: 0, total_items: 0 },
+    };
   }
+
+  const { data } = await axios.post('/api/cart/validate', apiPayload(items));
+  return saveServerPayload(data);
 }
 
-export function setQuantity(lineId, cantidad) {
+export async function hydrateCustomerCart(customerId) {
+  const localItems = getItems();
+  const activeCustomerKey = localStorage.getItem(`${CART_KEY}_customer_id`);
+  let response;
+
+  if (localItems.length && activeCustomerKey !== String(customerId)) {
+    const { data } = await axios.post('/api/cart/sync', apiPayload(localItems));
+    response = data;
+  } else {
+    const { data } = await axios.get('/api/cart');
+    response = data;
+  }
+
+  localStorage.setItem(`${CART_KEY}_customer_id`, String(customerId));
+  return saveServerPayload(response);
+}
+
+export async function add(product) {
+  const variantId = Number(product.variantId ?? product.variant_id ?? 0);
+  if (!variantId) {
+    throw new Error('No se pudo identificar la variante del producto.');
+  }
+
   const items = getItems();
-  const item = items.find(i => i.id === lineId);
+  const existing = items.find(item => item.variantId === variantId);
+  const nextItems = existing
+    ? items.map(item => item.variantId === variantId
+      ? { ...item, cantidad: item.cantidad + (product.cantidad || 1) }
+      : item)
+    : [...items, { ...product, variantId, cantidad: product.cantidad || 1 }];
 
-  if (item) {
-    item.cantidad = cantidad;
-    saveItems(items);
-    window.dispatchEvent(new Event('cart-updated'));
+  const customerId = window.__streetUrbanCustomerId;
+  if (customerId) {
+    const { data } = await axios.post('/api/cart/items', {
+      variant_id: variantId,
+      quantity: product.cantidad || 1,
+    });
+    return saveServerPayload(data);
   }
+
+  const { data } = await axios.post('/api/cart/validate', apiPayload(nextItems));
+  if (!data.valid) return saveServerPayload({ ...data, items });
+  return saveServerPayload(data);
 }
 
-export function removeItem(lineId) {
-  saveItems(getItems().filter(i => i.id !== lineId));
-  window.dispatchEvent(new Event('cart-updated'));
+export async function setQuantity(lineId, cantidad) {
+  const items = getItems();
+  const nextQuantity = Number(cantidad);
+  const item = items.find(current => current.id === lineId || current.variantId === Number(lineId));
+  if (!item) return null;
+
+  if (nextQuantity <= 0) return removeItem(lineId);
+
+  const nextItems = items.map(current => current.id === item.id
+    ? { ...current, cantidad: nextQuantity }
+    : current);
+
+  const customerId = window.__streetUrbanCustomerId;
+  if (customerId) {
+    const { data } = await axios.patch(`/api/cart/items/${item.variantId}`, {
+      variant_id: item.variantId,
+      quantity: nextQuantity,
+    });
+    return saveServerPayload(data);
+  }
+
+  const { data } = await axios.post('/api/cart/validate', apiPayload(nextItems));
+  if (!data.valid) return saveServerPayload({ ...data, items });
+  return saveServerPayload(data);
 }
 
+export async function removeItem(lineId) {
+  const items = getItems();
+  const item = items.find(current => current.id === lineId || current.variantId === Number(lineId));
+  if (!item) return null;
+
+  const customerId = window.__streetUrbanCustomerId;
+  if (customerId) {
+    const { data } = await axios.delete(`/api/cart/items/${item.variantId}`);
+    return saveServerPayload(data);
+  }
+
+  const nextItems = items.filter(current => current.id !== item.id);
+  const { data } = await axios.post('/api/cart/validate', apiPayload(nextItems));
+  return saveServerPayload(data);
+}

@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { Link, usePage, router } from '@inertiajs/vue3';
 import AuthModal from './AuthModal.vue';
-import { totalItems } from '@/cart';
+import { totalItems, hydrateCustomerCart } from '@/cart';
 import { totalItems as totalWishlist } from '@/wishlist';
 
 const page = usePage();
@@ -29,6 +29,9 @@ const wishlistItems = ref(0);
 const userMenuOpen = ref(false);
 
 const isLoggedIn = computed(() => !!page.props.auth?.user);
+const isCustomer = computed(() => page.props.auth?.type === 'customer');
+
+window.__streetUrbanCustomerId = isCustomer.value ? page.props.auth.user.id : null;
 
 const goToWishlist = () => {
   if (isLoggedIn.value) {
@@ -43,7 +46,14 @@ const refreshWishlistCount = async () => {
 };
 
 onMounted(() => {
-  items.value = totalItems();
+  const customerId = isCustomer.value ? page.props.auth.user.id : null;
+  if (customerId) {
+    hydrateCustomerCart(customerId).then(() => {
+      items.value = totalItems();
+    });
+  }
+
+  if (!customerId) items.value = totalItems();
   refreshWishlistCount();
   window.addEventListener('scroll', handleScroll);
   window.addEventListener('cart-updated', () => {
@@ -68,6 +78,9 @@ onMounted(() => {
 });
 
 const handleLogout = () => {
+  localStorage.removeItem('shopping_cart');
+  localStorage.removeItem('shopping_cart_customer_id');
+
   router.post('/auth/logout', {}, {
     onSuccess: () => {
       window.location.href = '/';

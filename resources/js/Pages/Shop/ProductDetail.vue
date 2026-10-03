@@ -7,6 +7,10 @@ import { isInWishlist, toggle as toggleWishlistItem } from '@/wishlist';
 
 const page = usePage();
 
+window.__streetUrbanCustomerId = page.props.auth?.type === 'customer'
+  ? page.props.auth.user.id
+  : null;
+
 const props = defineProps({
   producto: Object,
 });
@@ -88,20 +92,34 @@ const seleccionarTalla = (t) => {
 
 const puedeAgregar = computed(() => !!currentColor.value && !!selectedTalla.value);
 
-const agregarAlCarrito = () => {
+const agregarAlCarrito = async () => {
   if (!puedeAgregar.value) return;
 
-  add({
-    productId: props.producto.id,
-    name: props.producto.name,
-    price: currentPrecio.value,
-    image: currentImage.value,
-    colorId: currentColor.value.id,
-    colorNombre: currentColor.value.nombre,
-    talla: selectedTalla.value,
-  });
+  try {
+    const result = await add({
+      productId: props.producto.id,
+      variantId: currentTallaInfo.value.variant_id,
+      name: props.producto.name,
+      price: currentPrecio.value,
+      image: currentImage.value,
+      colorId: currentColor.value.id,
+      colorNombre: currentColor.value.nombre,
+      talla: selectedTalla.value,
+    });
 
-  agregado.value = true;
+    if (result?.valid === false) {
+      window.dispatchEvent(new CustomEvent('cart-error', {
+        detail: result.errors?.[0]?.message || 'No hay suficiente stock disponible.',
+      }));
+      return;
+    }
+
+    agregado.value = true;
+  } catch (error) {
+    window.dispatchEvent(new CustomEvent('cart-error', {
+      detail: error.response?.data?.message || error.message || 'No se pudo añadir el producto.',
+    }));
+  }
 };
 </script>
 

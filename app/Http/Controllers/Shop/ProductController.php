@@ -20,6 +20,7 @@ class ProductController extends Controller
                 'imagen' => $c->image_url ? Storage::disk('public')->url($c->image_url) : null,
                 'tallas' => $c->variants
                     ->map(fn ($v) => [
+                        'variant_id' => $v->id,
                         'talla' => $v->size,
                         'stock' => $v->stock,
                         'precio' => (float) ($v->price ?? $p->price),

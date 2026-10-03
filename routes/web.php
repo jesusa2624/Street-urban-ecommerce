@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\BusinessSettingController;
 use App\Http\Controllers\Admin\CategoryBrandController;
 use App\Http\Controllers\Admin\AvatarAdminController;
 use App\Http\Controllers\Admin\CatalogoController;
+use App\Http\Controllers\Api\CartController as ApiCartController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\Auth\ActivateAccountController;
 use App\Http\Controllers\Auth\LoginController;
@@ -125,6 +126,20 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::patch('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
+});
+
+// Carrito: la validación es pública para visitantes; la persistencia usa la sesión del cliente.
+Route::prefix('api/cart')->name('api.cart.')->group(function () {
+    Route::post('/validate', [ApiCartController::class, 'validateCart'])->name('validate');
+    Route::post('/confirm', [ApiCartController::class, 'confirm'])->name('confirm');
+
+    Route::middleware('auth:customer')->group(function () {
+        Route::get('/', [ApiCartController::class, 'show'])->name('show');
+        Route::post('/sync', [ApiCartController::class, 'sync'])->name('sync');
+        Route::post('/items', [ApiCartController::class, 'store'])->name('items.store');
+        Route::patch('/items/{variant}', [ApiCartController::class, 'update'])->name('items.update');
+        Route::delete('/items/{variant}', [ApiCartController::class, 'destroy'])->name('items.destroy');
+    });
 });
 
 // Rutas de autenticación (públicas)
