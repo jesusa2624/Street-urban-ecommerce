@@ -33,6 +33,7 @@ class ProductController extends Controller
 
         $colorConFoto = $p->colors->first(fn ($c) => $c->image_url);
         $precioBase = $colores->isNotEmpty() ? $colores->min('precio') : (float) $p->price;
+        $imageFallback = $p->image_url ? Storage::disk('public')->url($p->image_url) : null;
 
         return [
             'id' => $p->id,
@@ -44,7 +45,9 @@ class ProductController extends Controller
             'stock' => $p->stock > 0,
             'rating' => 4.5,
             'sold' => $vendidosPorProducto[$p->id] ?? 0,
-            'image' => $colorConFoto ? Storage::disk('public')->url($colorConFoto->image_url) : null,
+            'image' => $colorConFoto
+                ? Storage::disk('public')->url($colorConFoto->image_url)
+                : $imageFallback,
             'colores' => $colores,
         ];
     }
