@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductColor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -46,6 +47,7 @@ class CatalogoController extends Controller
                     'categoria' => $p->category->name ?? '-',
                     'descripcion' => $p->description,
                     'stock' => $p->stock,
+                    'activo' => $p->active,
                     'precioVenta' => (float) ($precioMin ?? $p->price),
                     'precioVentaMax' => ($precioMax !== null && (float) $precioMax !== (float) ($precioMin ?? $p->price)) ? (float) $precioMax : null,
                     // "Variantes" = colores del modelo (ej. blanco vs negro). Las tallas son
@@ -71,40 +73,69 @@ class CatalogoController extends Controller
             'categoria' => 'required|string|max:255',
             'categoriaDescripcion' => 'nullable|string|max:1000',
             'descripcion' => 'nullable|string|max:2000',
+            'color' => 'required|string|max:50',
+            'colorHex' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'talla' => 'required|string|max:20',
+            'precio' => 'required|numeric|min:0.01',
+            'stock' => 'required|integer|min:0',
         ]);
 
-        $brand = Brand::firstOrCreate(
-            ['slug' => Str::slug($validated['marca'])],
-            ['name' => trim($validated['marca']), 'description' => $validated['marcaDescripcion'] ?? null, 'active' => true]
-        );
+        $product = DB::transaction(function () use ($validated) {
+            $brand = Brand::firstOrCreate(
+                ['slug' => Str::slug(trim($validated['marca']))],
+                ['name' => trim($validated['marca']), 'description' => $validated['marcaDescripcion'] ?? null, 'active' => true]
+            );
 
-        $existe = Product::where('brand_id', $brand->id)
-            ->whereRaw('LOWER(TRIM(name)) = ?', [mb_strtolower(trim($validated['nombre']))])
-            ->exists();
+            $exists = Product::where('brand_id', $brand->id)
+                ->whereRaw('LOWER(TRIM(name)) = ?', [mb_strtolower(trim($validated['nombre']))])
+                ->exists();
 
-        if ($existe) {
+            if ($exists) {
+                return null;
+            }
+
+            $category = Category::firstOrCreate(
+                ['slug' => Str::slug(trim($validated['categoria']))],
+                ['name' => trim($validated['categoria']), 'description' => $validated['categoriaDescripcion'] ?? null, 'active' => true]
+            );
+
+            $sku = strtoupper(Str::slug($validated['nombre'].'-'.$validated['marca'])).'-'.Str::random(6);
+            $product = Product::create([
+                'name' => trim($validated['nombre']),
+                'brand_id' => $brand->id,
+                'category_id' => $category->id,
+                'description' => $validated['descripcion'] ?? '',
+                'sku' => $sku,
+                'price' => $validated['precio'],
+                'cost' => 0,
+                'stock' => $validated['stock'],
+                'image_url' => null,
+                'active' => true,
+            ]);
+
+            $color = $product->colors()->create([
+                'name' => trim($validated['color']),
+                'hex' => $validated['colorHex'] ?? null,
+                'image_url' => null,
+            ]);
+
+            $product->variants()->create([
+                'product_color_id' => $color->id,
+                'size' => trim($validated['talla']),
+                'sku' => strtoupper($sku.'-'.Str::slug($validated['color']).'-'.Str::slug($validated['talla'])),
+                'price' => $validated['precio'],
+                'cost' => 0,
+                'stock' => $validated['stock'],
+            ]);
+
+            return $product;
+        });
+
+        if (!$product) {
             return back()->withErrors(['nombre' => 'Ya existe un modelo con ese nombre y esa marca.']);
         }
 
-        $category = Category::firstOrCreate(
-            ['slug' => Str::slug($validated['categoria'])],
-            ['name' => $validated['categoria'], 'description' => $validated['categoriaDescripcion'] ?? null, 'active' => true]
-        );
-
-        Product::create([
-            'name' => trim($validated['nombre']),
-            'brand_id' => $brand->id,
-            'category_id' => $category->id,
-            'description' => $validated['descripcion'] ?? '',
-            'sku' => strtoupper(Str::slug($validated['nombre'] . '-' . $validated['marca'])) . '-' . Str::random(4),
-            'price' => 0,
-            'cost' => 0,
-            'stock' => 0,
-            'image_url' => null,
-            'active' => true,
-        ]);
-
-        return redirect()->route('admin.catalogo.index')->with('success', 'Modelo registrado en el catálogo.');
+        return redirect()->route('admin.catalogo.index')->with('success', 'Producto y variante inicial registrados.');
     }
 
     public function update(Request $request, Product $producto)
@@ -266,12 +297,20 @@ class CatalogoController extends Controller
 
     public function destroy(Product $producto)
     {
-        if ($producto->stock > 0 || $producto->variants()->exists()) {
-            return back()->withErrors(['error' => 'No se puede eliminar: tiene stock o compras registradas asociadas.']);
-        }
+        return $this->deactivate($producto);
+    }
 
-        $producto->delete();
+    public function deactivate(Product $producto)
+    {
+        $producto->update(['active' => false]);
 
-        return redirect()->route('admin.catalogo.index')->with('success', 'Modelo eliminado del catálogo.');
+        return redirect()->route('admin.catalogo.index')->with('success', 'Producto dado de baja; sus ventas y compras se conservaron.');
+    }
+
+    public function restore(Product $producto)
+    {
+        $producto->update(['active' => true]);
+
+        return redirect()->route('admin.catalogo.index')->with('success', 'Producto reactivado en el catálogo.');
     }
 }

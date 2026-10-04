@@ -108,11 +108,20 @@
                         <i class="fa-solid fa-pen text-xs"></i>
                       </button>
                       <button
-                        @click="eliminar(p)"
-                        title="Eliminar"
+                        v-if="p.activo"
+                        @click="darDeBaja(p)"
+                        title="Dar de baja"
                         class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-600 flex items-center justify-center transition-colors"
                       >
-                        <i class="fa-solid fa-trash text-xs"></i>
+                        <i class="fa-solid fa-box-archive text-xs"></i>
+                      </button>
+                      <button
+                        v-else
+                        @click="restaurar(p)"
+                        title="Restaurar producto"
+                        class="w-8 h-8 rounded-lg bg-green-50 hover:bg-green-100 text-green-600 flex items-center justify-center transition-colors"
+                      >
+                        <i class="fa-solid fa-rotate-left text-xs"></i>
                       </button>
                     </div>
                   </td>
@@ -313,9 +322,13 @@ const cerrarColores = () => {
   expandedColorId.value = null;
 };
 
-const eliminar = (producto) => {
-  if (!confirm(`¿Eliminar "${producto.nombre}" (${producto.marca}) del catálogo?`)) return;
-  router.delete(route('admin.catalogo.destroy', producto.id));
+const darDeBaja = (producto) => {
+  if (!confirm(`¿Dar de baja "${producto.nombre}" (${producto.marca})? Se conservará su historial y podrás restaurarlo después.`)) return;
+  router.patch(route('admin.catalogo.deactivate', producto.id));
+};
+
+const restaurar = (producto) => {
+  router.patch(route('admin.catalogo.restore', producto.id));
 };
 
 const expandedProductId = ref(null);

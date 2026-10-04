@@ -18,9 +18,18 @@ return new class extends Migration
 
         // Cada variante empieza con el precio de venta que tenía su producto hasta ahora;
         // de aquí en adelante cada compra actualiza el precio de SU propia variante.
+        // Se actualiza fila por fila para mantener compatibilidad con MySQL y SQLite
+        // (la suite de pruebas usa SQLite en memoria).
         DB::table('product_variants')
+            ->select(['product_variants.id', 'products.price'])
             ->join('products', 'products.id', '=', 'product_variants.product_id')
-            ->update(['product_variants.price' => DB::raw('products.price')]);
+            ->orderBy('product_variants.id')
+            ->get()
+            ->each(function (object $variant): void {
+                DB::table('product_variants')
+                    ->where('id', $variant->id)
+                    ->update(['price' => $variant->price]);
+            });
     }
 
     /**

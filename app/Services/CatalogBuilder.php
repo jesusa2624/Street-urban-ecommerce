@@ -44,9 +44,24 @@ class CatalogBuilder
                 'active' => $definition['active'] ?? true,
             ]);
 
+            $colors = $definition['colors'] ?? [];
+            if (count($colors) === 0) {
+                $colors = [[
+                    'name' => 'Único',
+                    'hex' => null,
+                    'image_url' => null,
+                    'sizes' => [[
+                        'size' => 'Única',
+                        'stock' => $definition['stock'] ?? 0,
+                        'price' => $definition['price'],
+                        'cost' => $definition['cost'] ?? null,
+                    ]],
+                ]];
+            }
+
             $totalStock = 0;
 
-            foreach ($definition['colors'] as $colorDefinition) {
+            foreach ($colors as $colorDefinition) {
                 $color = $product->colors()->create([
                     'name' => $colorDefinition['name'],
                     'hex' => $colorDefinition['hex'] ?? null,

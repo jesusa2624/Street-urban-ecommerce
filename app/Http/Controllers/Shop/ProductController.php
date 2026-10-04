@@ -113,6 +113,8 @@ class ProductController extends Controller
 
     public function show(Product $producto)
     {
+        abort_unless($producto->active, 404);
+
         $producto->load(['brand', 'category', 'colors.variants']);
 
         return Inertia::render('Shop/ProductDetail', [
